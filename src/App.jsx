@@ -4,8 +4,8 @@ import { ToastProvider } from './components/common/Toast'
 import ProtectedRoute from './components/Shell/ProtectedRoute'
 import AppShell from './components/Shell/AppShell'
 import LoginPage from './components/Auth/LoginPage'
-import ModuleStub from './components/pages/ModuleStub'
 import SettingsLayout from './components/Settings/SettingsLayout'
+import DashboardPage from './components/Dashboard/DashboardPage'
 import PlanningPage from './components/Planning/PlanningPage'
 import MarketingPage from './components/Reports/MarketingPage'
 import SalesPage from './components/Reports/SalesPage'
@@ -26,7 +26,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<ModuleStub name="Рабочий стол" />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute requireCap="view_reports">
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/planning"
                 element={
