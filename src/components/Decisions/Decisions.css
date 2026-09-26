@@ -1,0 +1,10 @@
+.dec__count {
+  font-size: 13px;
+  color: var(--ink-400);
+  font-weight: 600;
+}
+
+.dec__overdue {
+  color: #b3261e;
+  font-weight: 600;
+}

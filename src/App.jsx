@@ -9,6 +9,7 @@ import SettingsLayout from './components/Settings/SettingsLayout'
 import PlanningPage from './components/Planning/PlanningPage'
 import MarketingPage from './components/Reports/MarketingPage'
 import SalesPage from './components/Reports/SalesPage'
+import DecisionsPage from './components/Decisions/DecisionsPage'
 
 export default function App() {
   return (
@@ -49,7 +50,14 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/decisions" element={<ModuleStub name="Журнал решений" />} />
+              <Route
+                path="/decisions"
+                element={
+                  <ProtectedRoute requireCap="decisions">
+                    <DecisionsPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/settings"
                 element={

@@ -4,11 +4,13 @@ import FilterBar, { currentMonth } from './FilterBar'
 import FunnelView from './FunnelView'
 import MatrixView from './MatrixView'
 import EmptyState from '../common/EmptyState'
+import DecisionModal from '../Decisions/DecisionModal'
 import { useReportData } from '../../lib/reports/useReportData'
 
 export default function MarketingPage() {
   const [filters, setFilters] = useState({ month: currentMonth(), branch_id: null })
   const [tab, setTab] = useState('matrix')
+  const [deciding, setDeciding] = useState(false)
   const navigate = useNavigate()
   const { refs, orderedStages, meetHeldOrder, cohort, plan, loading } = useReportData(filters)
 
@@ -35,6 +37,9 @@ export default function MarketingPage() {
         </button>
         <button className={tab === 'funnel' ? 'is-active' : ''} onClick={() => setTab('funnel')}>
           Воронка
+        </button>
+        <button className="btn btn--ghost" style={{ marginLeft: 'auto' }} onClick={() => setDeciding(true)}>
+          + Решение по срезу
         </button>
       </div>
 
@@ -70,6 +75,24 @@ export default function MarketingPage() {
           orderedStages={orderedStages}
           meetHeldOrder={meetHeldOrder}
           filters={effectiveFilters}
+        />
+      )}
+
+      {deciding && (
+        <DecisionModal
+          slice={{
+            branch_id: effectiveFilters.branch_id,
+            client_task_id: effectiveFilters.client_task_id || null,
+            demand_source_id: effectiveFilters.demand_source_id || null,
+            lead_source_id: effectiveFilters.lead_source_id || null,
+          }}
+          sliceLabel={[
+            tasksById[effectiveFilters.client_task_id]?.name,
+            sourcesById[effectiveFilters.demand_source_id]?.name,
+          ]
+            .filter(Boolean)
+            .join(' · ') || 'весь филиал'}
+          onClose={() => setDeciding(false)}
         />
       )}
     </div>
