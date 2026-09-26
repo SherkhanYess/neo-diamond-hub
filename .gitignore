@@ -4,3 +4,4 @@ dist/
 .superpowers/
 .claude/worktrees/
 .netlify
+.supabase-credentials.txt
