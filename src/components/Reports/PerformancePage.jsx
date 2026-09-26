@@ -6,6 +6,7 @@ import { useReportData } from '../../lib/reports/useReportData'
 import { loadAdEntities, flatAds } from '../../lib/api/performance'
 import { getDisplaySettings } from '../../lib/api/settings'
 import { qualifiedDealIds, adMetrics, withoutAd } from '../../lib/reports/performance'
+import { buckets, funnelSeries, sumOverKeys } from '../../lib/reports/timeseries'
 import { money, num1, pct1 } from '../../lib/format'
 import './Reports.css'
 
@@ -14,6 +15,7 @@ const na = (v, render) => (v == null ? <span className="rep__na">н/д</span> : 
 export default function PerformancePage() {
   const [filters, setFilters] = useState({ month: currentMonth(), branch_id: null })
   const [view, setView] = useState('table')
+  const [grouping, setGrouping] = useState('day')
   const [ads, setAds] = useState([])
   const [minQuals, setMinQuals] = useState(10)
   const { refs, orderedStages, cohort, loading } = useReportData(filters)
@@ -41,6 +43,14 @@ export default function PerformancePage() {
     return adMetrics(flatAds(ads), cohort.deals, qualIds, minQuals)
   }, [ads, cohort, qualStage, minQuals])
 
+  const obrStage = orderedStages.find((s) => s.sort_order === 1)
+  const dynamics = useMemo(() => {
+    if (!qualStage || !obrStage) return { cols: [], obr: null, qual: null }
+    const cols = buckets(filters.month, grouping)
+    const { byStageDay } = funnelSeries(cohort.deals, cohort.events)
+    return { cols, obr: byStageDay.get(obrStage.id), qual: byStageDay.get(qualStage.id) }
+  }, [cohort, qualStage, obrStage, filters.month, grouping])
+
   const noAd = useMemo(() => {
     if (!qualStage || !perfSource) return null
     const qualIds = qualifiedDealIds(cohort.events, qualStage.id)
@@ -60,6 +70,9 @@ export default function PerformancePage() {
         </button>
         <button className={view === 'gallery' ? 'is-active' : ''} onClick={() => setView('gallery')}>
           Галерея креативов
+        </button>
+        <button className={view === 'dynamics' ? 'is-active' : ''} onClick={() => setView('dynamics')}>
+          Динамика (дни/недели)
         </button>
       </div>
 
@@ -144,6 +157,49 @@ export default function PerformancePage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && view === 'dynamics' && (
+        <div>
+          <div className="mx__group-toggle" style={{ marginBottom: 12 }}>
+            <button className={grouping === 'day' ? 'is-active' : ''} onClick={() => setGrouping('day')}>
+              По дням
+            </button>
+            <button className={grouping === 'week' ? 'is-active' : ''} onClick={() => setGrouping('week')}>
+              По неделям
+            </button>
+          </div>
+          <div className="rep__table-wrap">
+            <table className="rep__table rnp">
+              <thead>
+                <tr>
+                  <th className="rep__lcol">Показатель</th>
+                  {dynamics.cols.map((c) => (
+                    <th key={c.id} className="rnp__col">
+                      <div>{c.label}</div>
+                      <div className="rnp__sub">{c.sub}</div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="rep__lcol">Обращения</td>
+                  {dynamics.cols.map((c) => (
+                    <td key={c.id} className="rep__num mono">{num1(sumOverKeys(dynamics.obr, c.keys))}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="rep__lcol">Квалы</td>
+                  {dynamics.cols.map((c) => (
+                    <td key={c.id} className="rep__num mono">{num1(sumOverKeys(dynamics.qual, c.keys))}</td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="rep__note">Динамика обращений и квалификаций по {grouping === 'week' ? 'неделям' : 'дням'} месяца.</p>
         </div>
       )}
     </div>

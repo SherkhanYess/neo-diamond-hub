@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import FilterBar, { currentMonth } from './FilterBar'
 import FunnelView from './FunnelView'
 import MatrixView from './MatrixView'
+import SalesRnP from './SalesRnP'
 import EmptyState from '../common/EmptyState'
 import DecisionModal from '../Decisions/DecisionModal'
 import { useReportData } from '../../lib/reports/useReportData'
@@ -41,6 +42,9 @@ export default function MarketingPage() {
         </button>
         <button className={tab === 'funnel' ? 'is-active' : ''} onClick={() => setTab('funnel')}>
           Воронка
+        </button>
+        <button className={tab === 'weeks' ? 'is-active' : ''} onClick={() => setTab('weeks')}>
+          По неделям
         </button>
         <Link to="/marketing/performance" className="btn btn--ghost" style={{ marginLeft: 'auto', textDecoration: 'none' }}>
           Performance →
@@ -82,6 +86,16 @@ export default function MarketingPage() {
           orderedStages={orderedStages}
           meetHeldOrder={meetHeldOrder}
           filters={effectiveFilters}
+        />
+      )}
+
+      {!loading && tab === 'weeks' && (
+        <SalesRnP
+          cohort={cohort}
+          plan={plan}
+          orderedStages={orderedStages}
+          filters={effectiveFilters}
+          thresholds={{ low: 90, high: 100 }}
         />
       )}
 
