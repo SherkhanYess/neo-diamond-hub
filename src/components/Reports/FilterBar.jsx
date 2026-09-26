@@ -1,3 +1,4 @@
+import MultiSelect from './MultiSelect'
 import './FilterBar.css'
 
 function currentMonth() {
@@ -7,9 +8,10 @@ function currentMonth() {
 
 export { currentMonth }
 
-// Shared filter bar. `refs` supplies option lists; `value`/`onChange` manage state.
+// Shared filter bar. Attribute filters are multi-select (arrays); month/branch single.
 export default function FilterBar({ refs, value, onChange }) {
-  const set = (k, v) => onChange({ ...value, [k]: v || null })
+  const set = (k, v) => onChange({ ...value, [k]: v })
+  const arr = (k) => (Array.isArray(value[k]) ? value[k] : value[k] ? [value[k]] : [])
 
   return (
     <div className="filterbar">
@@ -32,39 +34,18 @@ export default function FilterBar({ refs, value, onChange }) {
           ))}
         </select>
       </label>
-      <label className="filterbar__ctrl">
+      <div className="filterbar__ctrl">
         <span>Клиентская задача</span>
-        <select className="select" value={value.client_task_id || ''} onChange={(e) => set('client_task_id', e.target.value)}>
-          <option value="">Все</option>
-          {(refs.clientTasks || []).map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="filterbar__ctrl">
+        <MultiSelect options={refs.clientTasks || []} value={arr('client_task_id')} onChange={(v) => set('client_task_id', v)} />
+      </div>
+      <div className="filterbar__ctrl">
         <span>Источник спроса</span>
-        <select className="select" value={value.demand_source_id || ''} onChange={(e) => set('demand_source_id', e.target.value)}>
-          <option value="">Все</option>
-          {(refs.demandSources || []).map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="filterbar__ctrl">
+        <MultiSelect options={refs.demandSources || []} value={arr('demand_source_id')} onChange={(v) => set('demand_source_id', v)} />
+      </div>
+      <div className="filterbar__ctrl">
         <span>Источник лида</span>
-        <select className="select" value={value.lead_source_id || ''} onChange={(e) => set('lead_source_id', e.target.value)}>
-          <option value="">Все</option>
-          {(refs.leadSources || []).map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </label>
+        <MultiSelect options={refs.leadSources || []} value={arr('lead_source_id')} onChange={(v) => set('lead_source_id', v)} />
+      </div>
     </div>
   )
 }

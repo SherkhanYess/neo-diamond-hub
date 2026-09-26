@@ -1,4 +1,4 @@
-import { buildFunnel } from '../../lib/reports/buildReport'
+import { buildFunnel, filterActive } from '../../lib/reports/buildReport'
 import { money, num1, pct1, ratio1 } from '../../lib/format'
 import './Reports.css'
 
@@ -16,7 +16,7 @@ export default function FunnelView({ cohort, plan, orderedStages, meetHeldOrder,
 
   return (
     <div>
-      {filters.demand_source_id && (
+      {filterActive(filters.demand_source_id) && (
         <p className="rep__note">
           Эффект источников спроса оценивается по сделкам, дошедшим до встречи (там становится
           известно первое касание).

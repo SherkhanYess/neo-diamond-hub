@@ -187,3 +187,27 @@
 .perf__card-line b {
   color: var(--ink-900);
 }
+
+/* Plan/fact combined cell */
+.pf { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.25; }
+.pf__plan { font-size: 12px; color: var(--ink-600); background: rgba(91,129,161,0.12); border-radius: 6px; padding: 0 6px; }
+.pf__fact { font-size: 13px; font-weight: 600; border-radius: 6px; padding: 0 6px; }
+.pf--good { color: #1e6440; background: rgba(30,100,60,0.12); }
+.pf--bad { color: #b3261e; background: rgba(179,38,30,0.10); }
+.pf--ok { color: var(--ink-800); }
+
+/* Grouped matrix */
+.mx__toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.mx__group-toggle { display: flex; gap: 4px; }
+.mx__group-toggle button { padding: 6px 14px; border-radius: var(--radius-pill); border: 1.5px solid var(--paper-300); background: var(--paper-000); color: var(--ink-600); font-weight: 600; font-size: 13px; }
+.mx__group-toggle button.is-active { border-color: var(--ink-800); border-width: 2px; color: var(--ink-900); background: var(--paper-100); }
+.mx__view-btn { margin-left: auto; }
+.mx__task-row td { background: var(--paper-050); font-weight: 600; }
+.mx__task-row .rep__lcol { background: var(--paper-050); cursor: pointer; }
+.mx__child .rep__lcol { padding-left: 30px !important; color: var(--ink-400); font-weight: 400; }
+.mx__caret { display: inline-block; width: 14px; color: var(--ink-400); }
+
+/* Column picker */
+.colpick { position: relative; }
+.colpick__menu { position: absolute; right: 0; top: 110%; z-index: 20; background: var(--paper-000); border: 1.5px solid var(--paper-300); border-radius: var(--radius-card); box-shadow: var(--shadow-sheet); padding: 10px 14px; min-width: 200px; }
+.colpick__menu label { display: flex; gap: 8px; align-items: center; font-size: 13px; padding: 4px 0; color: var(--ink-600); }

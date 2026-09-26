@@ -23,7 +23,11 @@ export default function MarketingPage() {
   const sourcesById = useMemo(() => Object.fromEntries(refs.demandSources.map((s) => [s.id, s])), [refs.demandSources])
 
   const openFunnel = (taskId, sourceId) => {
-    setFilters((f) => ({ ...f, client_task_id: taskId, demand_source_id: sourceId }))
+    setFilters((f) => ({
+      ...f,
+      client_task_id: taskId ? [taskId] : [],
+      demand_source_id: sourceId ? [sourceId] : [],
+    }))
     setTab('funnel')
   }
 
@@ -85,16 +89,18 @@ export default function MarketingPage() {
         <DecisionModal
           slice={{
             branch_id: effectiveFilters.branch_id,
-            client_task_id: effectiveFilters.client_task_id || null,
-            demand_source_id: effectiveFilters.demand_source_id || null,
-            lead_source_id: effectiveFilters.lead_source_id || null,
+            client_task_id: effectiveFilters.client_task_id || [],
+            demand_source_id: effectiveFilters.demand_source_id || [],
+            lead_source_id: effectiveFilters.lead_source_id || [],
           }}
-          sliceLabel={[
-            tasksById[effectiveFilters.client_task_id]?.name,
-            sourcesById[effectiveFilters.demand_source_id]?.name,
-          ]
-            .filter(Boolean)
-            .join(' · ') || 'весь филиал'}
+          sliceLabel={
+            [
+              (effectiveFilters.client_task_id || []).map((id) => tasksById[id]?.name).filter(Boolean).join(', '),
+              (effectiveFilters.demand_source_id || []).map((id) => sourcesById[id]?.name).filter(Boolean).join(', '),
+            ]
+              .filter(Boolean)
+              .join(' · ') || 'весь филиал'
+          }
           onClose={() => setDeciding(false)}
         />
       )}

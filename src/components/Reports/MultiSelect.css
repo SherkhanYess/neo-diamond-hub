@@ -1,0 +1,63 @@
+.ms {
+  position: relative;
+  min-width: 160px;
+}
+.ms__control {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1.5px solid var(--ink-200);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--paper-000);
+  color: var(--ink-800);
+  font-size: 15px;
+}
+.ms__placeholder {
+  color: var(--ink-400);
+}
+.ms__caret {
+  color: var(--ink-400);
+  font-size: 11px;
+}
+.ms__menu {
+  position: absolute;
+  left: 0;
+  top: 110%;
+  z-index: 30;
+  min-width: 100%;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--paper-000);
+  border: 1.5px solid var(--paper-300);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sheet);
+  padding: 6px;
+}
+.ms__opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  font-size: 14px;
+  color: var(--ink-700, var(--ink-600));
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ms__opt:hover {
+  background: var(--paper-100);
+}
+.ms__clear {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--ink-400);
+  font-size: 13px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--paper-200);
+  margin-bottom: 4px;
+}
