@@ -7,6 +7,7 @@ import { listDecisions, isOverdue } from '../../lib/api/decisions'
 import { currentMonth } from '../Reports/FilterBar'
 import { money, num1, pct1, ratio1 } from '../../lib/format'
 import EmptyState from '../common/EmptyState'
+import { FunnelChart, BarCompare, ProgressRing } from './Charts'
 import './Dashboard.css'
 
 function forecast(fact, month) {
@@ -59,6 +60,31 @@ export default function DashboardPage() {
   const factBySource = useMemo(() => totalsBy(cohort.deals.filter((d) => d.sale_at), 'demand_source_id'), [cohort.deals])
   const planBySource = plan?.computed?.sourceTotals || []
 
+  // Chart data: revenue plan vs fact, grouped by source and by task.
+  const sourceItems = useMemo(() => {
+    const keys = new Set([...planBySource.map((s) => s.demand_source_id), ...factBySource.map((s) => s.key)])
+    return [...keys]
+      .map((k) => ({
+        key: k,
+        label: sourcesById[k]?.name || '—',
+        plan: planBySource.find((s) => s.demand_source_id === k)?.revenue || 0,
+        fact: factBySource.find((s) => s.key === k)?.revenue || 0,
+      }))
+      .filter((i) => i.plan > 0 || i.fact > 0)
+  }, [planBySource, factBySource, sourcesById])
+
+  const taskItems = useMemo(() => {
+    const map = new Map()
+    for (const r of matrix.rows) {
+      if (r.plan_revenue <= 0 && r.fact_revenue <= 0) continue
+      const cur = map.get(r.client_task_id) || { key: r.client_task_id, plan: 0, fact: 0 }
+      cur.plan += r.plan_revenue
+      cur.fact += r.fact_revenue
+      map.set(r.client_task_id, cur)
+    }
+    return [...map.values()].map((i) => ({ ...i, label: tasksById[i.key]?.name || '—' }))
+  }, [matrix.rows, tasksById])
+
   const overdue = decisions.filter((d) => isOverdue(d))
 
   if (loading) return <p style={{ color: 'var(--ink-400)' }}>Загрузка…</p>
@@ -97,21 +123,20 @@ export default function DashboardPage() {
       ) : (
         <div className="dash__grid">
           {/* Revenue plan execution */}
-          <button className="dash__card dash__card--wide" onClick={() => navigate('/marketing')}>
-            <span className="eyebrow">Выполнение плана выручки</span>
-            <div className="dash__big mono">{money(factRevenue)}</div>
-            <div className="dash__row">
-              <span>План</span>
-              <b className="mono">{money(planRevenue)}</b>
+          <button className="dash__card dash__card--wide dash__card--split" onClick={() => navigate('/marketing')}>
+            <div>
+              <span className="eyebrow">Выполнение плана выручки</span>
+              <div className="dash__big mono">{money(factRevenue)}</div>
+              <div className="dash__row">
+                <span>План</span>
+                <b className="mono">{money(planRevenue)}</b>
+              </div>
+              <div className="dash__row">
+                <span>Прогноз на конец месяца</span>
+                <b className="mono">{money(fc)}</b>
+              </div>
             </div>
-            <div className="dash__row">
-              <span>Выполнение</span>
-              <b className="mono">{planRevenue ? pct1((factRevenue / planRevenue) * 100) : '—'}</b>
-            </div>
-            <div className="dash__row">
-              <span>Прогноз на конец месяца</span>
-              <b className="mono">{money(fc)}</b>
-            </div>
+            {planRevenue > 0 && <ProgressRing pct={(factRevenue / planRevenue) * 100} label="выполнено" />}
           </button>
 
           {/* Key metrics */}
@@ -124,29 +149,21 @@ export default function DashboardPage() {
           </div>
 
           {/* Mini funnel */}
-          <button className="dash__card" onClick={() => navigate('/sales')}>
+          <button className="dash__card dash__card--wide" onClick={() => navigate('/sales')}>
             <span className="eyebrow">Мини-воронка</span>
-            {funnel.rows.map((r) => (
-              <div className="dash__row" key={r.stage_id}>
-                <span>{r.name}</span>
-                <b className="mono">{r.fact == null ? 'н/д' : num1(r.fact)}{r.plan ? ` / ${num1(r.plan)}` : ''}</b>
-              </div>
-            ))}
+            <FunnelChart rows={funnel.rows} />
           </button>
 
           {/* Revenue by demand source */}
           <button className="dash__card" onClick={() => navigate('/marketing')}>
             <span className="eyebrow">Выручка по источникам спроса</span>
-            {planBySource.length === 0 && factBySource.length === 0 && <p className="dash__empty">Нет данных</p>}
-            {(planBySource.length ? planBySource : factBySource).map((s) => {
-              const f = factBySource.find((x) => x.key === s.demand_source_id)?.revenue || 0
-              return (
-                <div className="dash__row" key={s.demand_source_id || s.key}>
-                  <span>{sourcesById[s.demand_source_id || s.key]?.name || '—'}</span>
-                  <b className="mono">{money(f)}{s.revenue ? ` / ${money(s.revenue)}` : ''}</b>
-                </div>
-              )
-            })}
+            {sourceItems.length === 0 ? <p className="dash__empty">Нет данных</p> : <BarCompare items={sourceItems} />}
+          </button>
+
+          {/* Revenue by client task */}
+          <button className="dash__card" onClick={() => navigate('/marketing')}>
+            <span className="eyebrow">Выручка по клиентским задачам</span>
+            {taskItems.length === 0 ? <p className="dash__empty">Нет данных</p> : <BarCompare items={taskItems} />}
           </button>
 
           {/* Biggest deviations */}
