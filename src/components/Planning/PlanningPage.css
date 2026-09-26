@@ -1,0 +1,172 @@
+.plan__controls {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.plan__ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-400);
+  font-weight: 600;
+}
+
+.plan__status {
+  margin-left: auto;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--paper-100);
+  border: 1.5px solid var(--paper-300);
+  font-size: 13px;
+  color: var(--ink-600);
+  font-weight: 600;
+}
+
+.plan__sheet-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--space-4);
+}
+.plan__sheet-tabs button {
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--paper-300);
+  background: var(--paper-000);
+  color: var(--ink-600);
+  font-weight: 600;
+  font-size: 14px;
+}
+.plan__sheet-tabs button.is-active {
+  border-color: var(--ink-800);
+  border-width: 2px;
+  color: var(--ink-900);
+  background: var(--paper-100);
+}
+
+.plan__table-wrap {
+  overflow-x: auto;
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  background: var(--paper-000);
+  margin-bottom: var(--space-4);
+}
+
+.plan__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.plan__table th {
+  position: sticky;
+  top: 0;
+  background: var(--paper-100);
+  color: var(--ink-600);
+  font-weight: 600;
+  text-align: right;
+  padding: 10px 12px;
+  white-space: nowrap;
+  border-bottom: 1.5px solid var(--paper-300);
+}
+.plan__table th.plan__sticky-col {
+  text-align: left;
+}
+
+.plan__table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--paper-200);
+}
+
+.plan__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.plan__sticky-col {
+  position: sticky;
+  left: 0;
+  background: var(--paper-000);
+  z-index: 1;
+}
+
+.plan__task-row {
+  background: var(--paper-050);
+  font-weight: 600;
+}
+.plan__task-row .plan__sticky-col {
+  background: var(--paper-050);
+}
+.plan__task-name {
+  color: var(--ink-900);
+}
+.plan__source-name {
+  padding-left: 24px !important;
+  color: var(--ink-400);
+}
+
+.plan__input {
+  width: 110px;
+  padding: 5px 8px;
+  text-align: right;
+  border-radius: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.plan__grand {
+  font-weight: 700;
+  background: var(--paper-100);
+}
+.plan__grand .plan__sticky-col {
+  background: var(--paper-100);
+}
+
+.plan__bad,
+.plan__warn {
+  color: #b3261e;
+}
+
+.plan__subhead {
+  font-size: 16px;
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.plan__hint {
+  color: var(--ink-400);
+  font-size: 13px;
+  margin: 0 0 var(--space-3);
+}
+
+.plan__na {
+  color: var(--ink-200);
+}
+
+.plan__actionbar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  background: linear-gradient(transparent, var(--paper-050) 40%);
+}
+
+.plan__summary {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink-600);
+}
+.plan__summary b {
+  color: var(--ink-900);
+  font-family: var(--font-mono);
+}
