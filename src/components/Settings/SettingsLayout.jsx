@@ -5,6 +5,7 @@ import Roles from './Roles'
 import Users from './Users'
 import Display from './Display'
 import ChangeLog from './ChangeLog'
+import Integrations from './Integrations'
 import {
   citiesConfig,
   branchesConfig,
@@ -25,6 +26,7 @@ const SECTIONS = [
   { key: 'lead_sources', label: 'Источники лида', render: () => <CrudSection config={leadSourcesConfig} /> },
   { key: 'funnel', label: 'Воронки', render: () => <Funnel /> },
   { key: 'creative_tags', label: 'Теги креативов', render: () => <CrudSection config={creativeTagsConfig} /> },
+  { key: 'integrations', label: 'Интеграции', render: () => <Integrations /> },
   { key: 'display', label: 'Отображение', render: () => <Display /> },
   { key: 'changelog', label: 'Журнал изменений', render: () => <ChangeLog /> },
 ]
