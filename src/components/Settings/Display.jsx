@@ -23,6 +23,7 @@ export default function Display() {
         plan_color_high: Number(form.plan_color_high),
         currency: form.currency,
         week_start: Number(form.week_start),
+        perf_min_quals: Number(form.perf_min_quals),
       },
       profile?.id
     )
@@ -49,6 +50,10 @@ export default function Display() {
           <option value={1}>Понедельник</option>
           <option value={0}>Воскресенье</option>
         </select>
+      </div>
+      <div className="field">
+        <label>Порог «мало данных» (мин. квалов в Performance)</label>
+        <input className="input" type="number" value={form.perf_min_quals ?? 10} onChange={(e) => set('perf_min_quals', e.target.value)} />
       </div>
       <button className="btn btn--primary" onClick={save}>
         Сохранить

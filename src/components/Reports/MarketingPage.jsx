@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import FilterBar, { currentMonth } from './FilterBar'
 import FunnelView from './FunnelView'
 import MatrixView from './MatrixView'
@@ -38,7 +38,10 @@ export default function MarketingPage() {
         <button className={tab === 'funnel' ? 'is-active' : ''} onClick={() => setTab('funnel')}>
           Воронка
         </button>
-        <button className="btn btn--ghost" style={{ marginLeft: 'auto' }} onClick={() => setDeciding(true)}>
+        <Link to="/marketing/performance" className="btn btn--ghost" style={{ marginLeft: 'auto', textDecoration: 'none' }}>
+          Performance →
+        </Link>
+        <button className="btn btn--ghost" onClick={() => setDeciding(true)}>
           + Решение по срезу
         </button>
       </div>

@@ -63,3 +63,19 @@ export const leadSourcesConfig = {
   columns: [{ key: 'name', label: 'Название' }],
   fields: [{ key: 'name', label: 'Название', type: 'text', required: true }],
 }
+
+export const TAG_CATEGORIES = ['Формат', 'Хук', 'Лицо в кадре', 'Оффер', 'Задуманная задача']
+
+export const creativeTagsConfig = {
+  table: 'creative_tags',
+  title: 'Теги креативов',
+  singular: 'Тег',
+  columns: [
+    { key: 'name', label: 'Тег' },
+    { key: 'category', label: 'Категория' },
+  ],
+  fields: [
+    { key: 'name', label: 'Тег', type: 'text', required: true },
+    { key: 'category', label: 'Категория', type: 'select', options: TAG_CATEGORIES },
+  ],
+}

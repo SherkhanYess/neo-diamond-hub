@@ -121,3 +121,69 @@
   color: var(--ink-900);
   background: var(--paper-100);
 }
+
+.perf__low {
+  background: rgba(91, 129, 161, 0.06);
+}
+.perf__badge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-400);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-pill);
+  padding: 1px 8px;
+}
+.perf__noad td {
+  background: rgba(179, 38, 30, 0.05);
+  font-weight: 600;
+}
+.taskbar {
+  display: flex;
+  height: 10px;
+  width: 120px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--paper-200);
+}
+.taskbar__seg {
+  height: 100%;
+}
+.perf__gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+.perf__card {
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  background: var(--paper-000);
+  overflow: hidden;
+}
+.perf__preview {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  background: var(--paper-100);
+  color: var(--ink-600);
+  font-weight: 600;
+  font-size: 13px;
+}
+.perf__card-body {
+  padding: var(--space-3);
+}
+.perf__card-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--ink-400);
+  margin-bottom: 6px;
+}
+.perf__card-line b {
+  color: var(--ink-900);
+}

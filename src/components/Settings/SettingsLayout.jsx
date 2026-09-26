@@ -11,6 +11,7 @@ import {
   clientTasksConfig,
   demandSourcesConfig,
   leadSourcesConfig,
+  creativeTagsConfig,
 } from './sections/configs'
 import './SettingsLayout.css'
 
@@ -23,6 +24,7 @@ const SECTIONS = [
   { key: 'demand_sources', label: 'Источники спроса', render: () => <CrudSection config={demandSourcesConfig} /> },
   { key: 'lead_sources', label: 'Источники лида', render: () => <CrudSection config={leadSourcesConfig} /> },
   { key: 'funnel', label: 'Воронки', render: () => <Funnel /> },
+  { key: 'creative_tags', label: 'Теги креативов', render: () => <CrudSection config={creativeTagsConfig} /> },
   { key: 'display', label: 'Отображение', render: () => <Display /> },
   { key: 'changelog', label: 'Журнал изменений', render: () => <ChangeLog /> },
 ]

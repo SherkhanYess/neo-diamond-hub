@@ -10,6 +10,7 @@ import PlanningPage from './components/Planning/PlanningPage'
 import MarketingPage from './components/Reports/MarketingPage'
 import SalesPage from './components/Reports/SalesPage'
 import DecisionsPage from './components/Decisions/DecisionsPage'
+import PerformancePage from './components/Reports/PerformancePage'
 
 export default function App() {
   return (
@@ -39,6 +40,14 @@ export default function App() {
                 element={
                   <ProtectedRoute requireCap="view_reports">
                     <MarketingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/marketing/performance"
+                element={
+                  <ProtectedRoute requireCap="view_reports">
+                    <PerformancePage />
                   </ProtectedRoute>
                 }
               />
