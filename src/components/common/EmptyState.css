@@ -1,0 +1,22 @@
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: var(--space-5);
+}
+
+.empty__card {
+  text-align: center;
+  max-width: 420px;
+}
+
+.empty__title {
+  font-size: 22px;
+  margin-bottom: var(--space-2);
+}
+
+.empty__desc {
+  color: var(--ink-400);
+  margin: 0 0 var(--space-4);
+}

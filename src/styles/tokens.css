@@ -1,0 +1,51 @@
+:root {
+  --paper-000: #FFFFFF;
+  --paper-050: #FAFBFC;
+  --paper-100: #F2F5F9;
+  --paper-200: #E9EDF3;
+  --paper-300: #DBE2EB;
+
+  --ink-900: #071630;
+  --ink-800: #0B2040;
+  --ink-600: #1E3149;
+  --ink-400: #5B81A1;
+  --ink-200: #C2D1DE;
+  --ink-100: #E2E9F1;
+
+  --champagne-700: #7C6035;
+  --champagne-500: #C4A177;
+  --champagne-400: #DCC29B;
+  --champagne-200: #EFE4D2;
+
+  --radius-card: 24px;
+  --radius-sheet: 44px;
+  --radius-pill: 50px;
+
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 56px;
+  --space-7: 96px;
+
+  --font-display: 'Unbounded', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+
+  /* Cold/blue-toned shadows only — built from ink-800's RGB, never rgba(0,0,0,...). */
+  --shadow-card: 0 2px 8px rgba(11, 32, 64, 0.08);
+  --shadow-sheet: 0 -4px 16px rgba(11, 32, 64, 0.12);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  margin: 0;
+  background: var(--paper-050);
+  color: var(--ink-800);
+  font-family: var(--font-body);
+}

@@ -1,0 +1,63 @@
+.roles__grid-wrap {
+  overflow-x: auto;
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  background: var(--paper-000);
+}
+
+.roles__grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.roles__grid th,
+.roles__grid td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--paper-200);
+  text-align: left;
+  vertical-align: top;
+}
+
+.roles__grid thead th {
+  background: var(--paper-100);
+  color: var(--ink-600);
+  font-weight: 600;
+}
+
+.roles__cap {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.roles__name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.roles__system {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-400);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.roles__scope {
+  min-width: 140px;
+}
+
+.roles__branches {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-600);
+}
+.roles__branches label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}

@@ -1,0 +1,137 @@
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--paper-000);
+  border-right: 1.5px solid var(--paper-300);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  transition: width var(--transition-base);
+}
+
+.sidebar--collapsed {
+  width: 68px;
+}
+
+.sidebar__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3);
+  min-height: 64px;
+}
+
+.sidebar__burger {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  color: var(--ink-600);
+  padding: 6px;
+  border-radius: 8px;
+}
+.sidebar__burger:hover {
+  background: var(--paper-100);
+}
+
+.sidebar__brand {
+  font-family: var(--font-display);
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  color: var(--ink-800);
+  white-space: nowrap;
+}
+
+.sidebar__nav {
+  flex: 1;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--ink-600);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.sidebar__link:hover {
+  background: var(--paper-100);
+}
+.sidebar__link.is-active {
+  background: var(--paper-100);
+  color: var(--ink-900);
+  border: 2px solid var(--ink-800);
+  padding: 8px 10px;
+}
+
+.sidebar__icon {
+  width: 22px;
+  text-align: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar__bottom {
+  padding: var(--space-2);
+  border-top: 1.5px solid var(--paper-200);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 10px 12px;
+}
+
+.sidebar__name {
+  font-size: 13px;
+  color: var(--ink-400);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar__signout {
+  background: transparent;
+  border: none;
+  color: var(--ink-400);
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+.sidebar__signout:hover {
+  background: var(--paper-100);
+  color: var(--ink-800);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 800;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-sheet);
+    width: 240px;
+  }
+  .sidebar--mobile-open {
+    transform: translateX(0);
+  }
+  .sidebar--collapsed {
+    width: 240px;
+  }
+}

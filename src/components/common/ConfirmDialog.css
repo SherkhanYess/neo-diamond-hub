@@ -1,0 +1,37 @@
+.confirm__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(11, 32, 64, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.confirm {
+  background: var(--paper-000);
+  border-radius: var(--radius-card);
+  border: 1.5px solid var(--paper-300);
+  box-shadow: var(--shadow-sheet);
+  padding: var(--space-5);
+  width: 100%;
+  max-width: 420px;
+}
+
+.confirm__title {
+  font-size: 20px;
+  margin-bottom: var(--space-2);
+}
+
+.confirm__msg {
+  color: var(--ink-400);
+  margin: 0 0 var(--space-4);
+  font-size: 14px;
+}
+
+.confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
