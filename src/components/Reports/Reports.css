@@ -211,3 +211,10 @@
 .colpick { position: relative; }
 .colpick__menu { position: absolute; right: 0; top: 110%; z-index: 20; background: var(--paper-000); border: 1.5px solid var(--paper-300); border-radius: var(--radius-card); box-shadow: var(--shadow-sheet); padding: 10px 14px; min-width: 200px; }
 .colpick__menu label { display: flex; gap: 8px; align-items: center; font-size: 13px; padding: 4px 0; color: var(--ink-600); }
+
+/* РнП table */
+.rnp th, .rnp td { min-width: 92px; }
+.rnp__month { position: sticky; left: 200px; background: var(--paper-100); z-index: 2; }
+.rnp .rep__lcol { min-width: 190px; }
+.rnp__col { text-align: right; }
+.rnp__sub { font-size: 10px; color: var(--ink-400); font-weight: 400; text-transform: none; }
