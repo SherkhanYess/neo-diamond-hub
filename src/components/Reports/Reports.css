@@ -1,0 +1,123 @@
+.rep__table-wrap {
+  overflow-x: auto;
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  background: var(--paper-000);
+  margin-bottom: var(--space-4);
+}
+
+.rep__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.rep__table th {
+  position: sticky;
+  top: 0;
+  background: var(--paper-100);
+  color: var(--ink-600);
+  font-weight: 600;
+  text-align: right;
+  padding: 10px 12px;
+  white-space: nowrap;
+  border-bottom: 1.5px solid var(--paper-300);
+}
+.rep__table th.rep__lcol {
+  text-align: left;
+}
+
+.rep__table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--paper-200);
+}
+
+.rep__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rep__lcol {
+  position: sticky;
+  left: 0;
+  background: var(--paper-000);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.rep__na {
+  color: var(--ink-200);
+  text-align: right;
+}
+
+.rep__clickable {
+  cursor: pointer;
+}
+.rep__clickable:hover td {
+  background: var(--paper-050);
+}
+
+.rep__below {
+  background: rgba(179, 38, 30, 0.08);
+  color: #b3261e;
+}
+.rep__ok {
+  background: rgba(124, 96, 53, 0.08);
+}
+.rep__above {
+  background: rgba(30, 100, 60, 0.1);
+  color: #1e6440;
+}
+
+.rep__totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.rep__totcard {
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  background: var(--paper-000);
+  padding: var(--space-3) var(--space-4);
+}
+
+.rep__totline {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-400);
+}
+.rep__totline b {
+  color: var(--ink-900);
+}
+
+.rep__note {
+  color: var(--ink-400);
+  font-size: 12px;
+  margin: var(--space-2) 0 var(--space-3);
+}
+
+.rep__tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--space-4);
+}
+.rep__tabs button {
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--paper-300);
+  background: var(--paper-000);
+  color: var(--ink-600);
+  font-weight: 600;
+  font-size: 14px;
+}
+.rep__tabs button.is-active {
+  border-color: var(--ink-800);
+  border-width: 2px;
+  color: var(--ink-900);
+  background: var(--paper-100);
+}

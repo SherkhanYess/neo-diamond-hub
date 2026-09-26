@@ -7,6 +7,8 @@ import LoginPage from './components/Auth/LoginPage'
 import ModuleStub from './components/pages/ModuleStub'
 import SettingsLayout from './components/Settings/SettingsLayout'
 import PlanningPage from './components/Planning/PlanningPage'
+import MarketingPage from './components/Reports/MarketingPage'
+import SalesPage from './components/Reports/SalesPage'
 
 export default function App() {
   return (
@@ -31,8 +33,22 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/marketing" element={<ModuleStub name="Маркетинг" />} />
-              <Route path="/sales" element={<ModuleStub name="Продажи" />} />
+              <Route
+                path="/marketing"
+                element={
+                  <ProtectedRoute requireCap="view_reports">
+                    <MarketingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sales"
+                element={
+                  <ProtectedRoute requireCap="view_reports">
+                    <SalesPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="/decisions" element={<ModuleStub name="Журнал решений" />} />
               <Route
                 path="/settings"
