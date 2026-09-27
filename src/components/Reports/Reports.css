@@ -189,9 +189,11 @@
 }
 
 /* Plan/fact combined cell */
-.pf { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.25; }
-.pf__plan { font-size: 12px; color: var(--ink-600); background: rgba(91,129,161,0.12); border-radius: 6px; padding: 0 6px; }
-.pf__fact { font-size: 13px; font-weight: 600; border-radius: 6px; padding: 0 6px; }
+.pf { display: flex; align-items: baseline; gap: 6px; }
+.pf--inline { flex-direction: row; justify-content: flex-end; flex-wrap: nowrap; }
+.pf__plan { font-size: 12px; color: var(--ink-600); background: rgba(91,129,161,0.14); border-radius: 6px; padding: 1px 6px; }
+.pf__sep { color: var(--ink-200); font-size: 12px; }
+.pf__fact { font-size: 13px; font-weight: 600; border-radius: 6px; padding: 1px 6px; }
 .pf--good { color: #1e6440; background: rgba(30,100,60,0.12); }
 .pf--bad { color: #b3261e; background: rgba(179,38,30,0.10); }
 .pf--ok { color: var(--ink-800); }

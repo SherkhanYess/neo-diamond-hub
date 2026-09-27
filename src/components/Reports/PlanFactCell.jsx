@@ -23,8 +23,9 @@ export default function PlanFactCell({ plan, fact, fmt = 'money', lowerBetter = 
   const f = FMT[fmt] || money
   const cls = classify(plan, fact, lowerBetter, thresholds)
   return (
-    <div className="pf">
+    <div className="pf pf--inline">
       <span className="pf__plan mono">{plan == null ? '—' : f(plan)}</span>
+      <span className="pf__sep">/</span>
       <span className={`pf__fact mono ${cls}`}>{fact == null ? 'н/д' : f(fact)}</span>
     </div>
   )
