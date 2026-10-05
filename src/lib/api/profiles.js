@@ -1,6 +1,26 @@
 import { supabase } from '../supabaseClient'
 import { logChange } from './audit'
 
+// Create a user via the create-user edge function (server-side admin).
+export async function createUser({ email, full_name, password, role_id, branch_ids }) {
+  const { data, error } = await supabase.functions.invoke('create-user', {
+    body: { email, full_name, password, role_id, branch_ids },
+  })
+  if (error) {
+    // Edge errors carry the server message in context.
+    let msg = 'Не удалось создать пользователя'
+    try {
+      const body = await error.context?.json?.()
+      if (body?.error) msg = body.error
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg)
+  }
+  if (data?.error) throw new Error(data.error)
+  return data
+}
+
 export async function listProfiles() {
   const { data, error } = await supabase
     .from('profiles')
