@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { loadTaplinkEvents } from '../../lib/api/taplink';
 import { aggregate } from '../../lib/taplink/aggregate';
-import { num1 } from '../../lib/format';
 import { ProgressRing } from '../Dashboard/Charts';
 import { BarList } from './TaplinkCharts';
 import '../Dashboard/Dashboard.css';
@@ -48,9 +47,9 @@ export default function TaplinkPage() {
         <div className="dash__card dash__card--split">
           <div>
             <span className="eyebrow">Просмотры</span>
-            <div className="dash__big mono">{num1(a.views)}</div>
-            <div className="dash__row"><span>Уникальных</span><b className="mono">{num1(a.viewers)}</b></div>
-            <div className="dash__row"><span>Кликов</span><b className="mono">{num1(a.clicks)}</b></div>
+            <div className="dash__big mono">{a.views}</div>
+            <div className="dash__row"><span>Уникальных</span><b className="mono">{a.viewers}</b></div>
+            <div className="dash__row"><span>Кликов</span><b className="mono">{a.clicks}</b></div>
           </div>
           <ProgressRing pct={a.conversion * 100} label="в клик" />
         </div>
