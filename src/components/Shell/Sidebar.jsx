@@ -8,6 +8,7 @@ const ICONS = {
   planning: '◫',
   marketing: '◈',
   sales: '⇅',
+  taplink: '◇',
   decisions: '✓',
   settings: '⚙',
 }

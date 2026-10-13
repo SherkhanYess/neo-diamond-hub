@@ -22,6 +22,7 @@ export const MENU_ITEMS = [
   { key: 'planning', label: 'Планирование', path: '/planning', cap: 'edit_plan' },
   { key: 'marketing', label: 'Маркетинг', path: '/marketing', cap: 'view_reports' },
   { key: 'sales', label: 'Продажи', path: '/sales', cap: 'view_reports' },
+  { key: 'taplink', label: 'Таплинк', path: '/taplink', cap: 'view_reports' },
   { key: 'decisions', label: 'Журнал решений', path: '/decisions', cap: 'decisions' },
 ]
 
