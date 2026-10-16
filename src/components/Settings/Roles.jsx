@@ -65,9 +65,13 @@ export default function Roles() {
       title: `Удалить роль «${role.name}»?`,
       onConfirm: async () => {
         setConfirm(null)
-        await deleteRole(role.id, actorId)
-        await load()
-        toast.show({ message: 'Роль удалена.' })
+        try {
+          await deleteRole(role.id, actorId)
+          await load()
+          toast.show({ message: 'Роль удалена.' })
+        } catch {
+          toast.show({ message: 'Нельзя удалить роль, назначенную пользователям. Сначала смените им роль.' })
+        }
       },
     })
   }

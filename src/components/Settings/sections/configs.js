@@ -20,7 +20,7 @@ export const branchesConfig = {
     { key: 'name', label: 'Название' },
     { key: 'city_name', label: 'Город', render: (r) => r.city?.name ?? '—' },
   ],
-  select: 'id, name, sort_order, is_archived, created_at, city:cities(id, name)',
+  select: 'id, name, sort_order, is_archived, created_at, city_id, city:cities(id, name)',
   fields: [
     { key: 'name', label: 'Название', type: 'text', required: true },
     { key: 'city_id', label: 'Город', type: 'select', optionsFrom: 'cities' },
@@ -49,7 +49,7 @@ export const demandSourcesConfig = {
     { key: 'name', label: 'Источник' },
     { key: 'owner', label: 'Ответственный', render: (r) => r.default_owner?.full_name ?? '—' },
   ],
-  select: 'id, name, sort_order, is_archived, created_at, default_owner:profiles(id, full_name)',
+  select: 'id, name, sort_order, is_archived, created_at, default_owner_id, default_owner:profiles(id, full_name)',
   fields: [
     { key: 'name', label: 'Название', type: 'text', required: true },
     { key: 'default_owner_id', label: 'Ответственный по умолчанию', type: 'select', optionsFrom: 'profiles', optional: true },

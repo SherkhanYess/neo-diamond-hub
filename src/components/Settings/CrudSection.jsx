@@ -4,12 +4,9 @@ import ConfirmDialog from '../common/ConfirmDialog'
 import { useToast } from '../common/Toast'
 import { useSession } from '../../context/SessionContext'
 import { supabase } from '../../lib/supabaseClient'
-import { listRef, createRef, updateRef, archiveRef, unarchiveRef, deleteRef } from '../../lib/api/references'
-import { canDelete, validateUniqueName } from '../../lib/referenceRules'
+import { listRef, createRef, updateRef, archiveRef, unarchiveRef, deleteRef, isReferenceInUse } from '../../lib/api/references'
+import { validateUniqueName } from '../../lib/referenceRules'
 import './CrudSection.css'
-
-// Phase 1: nothing references dictionaries yet, so items are never "in use".
-const usageChecker = () => false
 
 export default function CrudSection({ config }) {
   const { profile } = useSession()
@@ -78,7 +75,13 @@ export default function CrudSection({ config }) {
     const payload = {}
     for (const f of config.fields) {
       let v = form[f.key]
-      if (v === '' || v === undefined) v = f.optional ? null : v
+      const isFk = !!f.optionsFrom // select referencing another table (uuid column)
+      const isNum = f.type === 'number'
+      if (v === '' || v === undefined) {
+        // Empty FK/number → null (avoids '' in uuid/number columns); plain
+        // text/enum columns keep '' (some are NOT NULL with a '' default).
+        v = isFk || isNum || f.optional ? null : ''
+      }
       payload[f.key] = v
     }
     try {
@@ -109,13 +112,25 @@ export default function CrudSection({ config }) {
   }
 
   const doDelete = async (row) => {
-    await deleteRef(config.table, row.id, actorId)
-    await load()
-    toast.show({ message: `«${row.name}» удалён.` })
+    try {
+      await deleteRef(config.table, row.id, actorId)
+      await load()
+      toast.show({ message: `«${row.name}» удалён.` })
+    } catch {
+      // A reference appeared between the check and the delete (FK violation):
+      // fall back to archiving so the action never silently fails.
+      await doArchive(row)
+    }
   }
 
-  const askRemove = (row) => {
-    if (canDelete(usageChecker, config.table, row.id)) {
+  const askRemove = async (row) => {
+    let inUse = true
+    try {
+      inUse = await isReferenceInUse(config.table, row.id)
+    } catch {
+      inUse = true // on doubt, don't offer a hard delete
+    }
+    if (!inUse) {
       setConfirm({
         title: `Удалить «${row.name}»?`,
         message: 'Элемент не используется, его можно удалить безвозвратно.',
@@ -129,7 +144,7 @@ export default function CrudSection({ config }) {
     } else {
       setConfirm({
         title: `Архивировать «${row.name}»?`,
-        message: 'Элемент уже используется, поэтому его нельзя удалить — только архивировать. Он останется в отчётах прошлых периодов.',
+        message: 'Элемент уже используется (в сделках, планах или расходах), поэтому его нельзя удалить — только архивировать. Он останется в отчётах прошлых периодов.',
         confirmLabel: 'В архив',
         onConfirm: async () => {
           setConfirm(null)
