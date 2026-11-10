@@ -32,13 +32,6 @@ Content-Type: application/json
 // External data sources and how the hub receives their data.
 const INTEGRATIONS = [
   {
-    key: 'meta',
-    name: 'Meta Ads',
-    status: 'ждёт ключей',
-    desc: 'Расход, показы и клики по дням на уровне объявления; кампании, группы, объявления, превью креативов.',
-    needs: ['Access token рекламного кабинета', 'ID рекламного аккаунта (act_…)', 'Метка объявления в ссылке: utm_term={{ad.id}}'],
-  },
-  {
     key: 'tiktok',
     name: 'TikTok Ads',
     status: 'ждёт ключей',
@@ -49,17 +42,68 @@ const INTEGRATIONS = [
 
 const fmtTime = (t) => (t ? new Date(t).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' }) : '—')
 
-function AmoCard() {
+function useIntegration(key) {
   const [row, setRow] = useState(null)
   useEffect(() => {
     supabase
       .from('integrations')
       .select('last_run_at, last_ok_at, last_error, last_stats, config')
-      .eq('key', 'amocrm')
+      .eq('key', key)
       .maybeSingle()
       .then(({ data }) => setRow(data))
-  }, [])
+  }, [key])
   const failing = row?.last_error && (!row.last_ok_at || row.last_run_at > row.last_ok_at)
+  return [row, failing]
+}
+
+function MetaCard() {
+  const [row, failing] = useIntegration('meta')
+  const accounts = Object.entries(row?.config?.accounts ?? {})
+  const usd = (row?.last_stats?.results ?? []).reduce((a, r) => a + (r.usd ?? 0), 0)
+  const vat = row?.config?.vat_pct
+  return (
+    <div className="integr__card integr__card--ready">
+      <div className="integr__head">
+        <h3>Meta Ads</h3>
+        <span className={`integr__status ${failing ? '' : 'integr__status--ready'}`}>{failing ? 'ошибка' : 'подключено'}</span>
+      </div>
+      <p className="integr__desc">
+        Кампании, группы и объявления всех кабинетов; расход, показы и клики по дням на уровне объявления. Обновление
+        каждый час за последние {row?.config?.incremental_days ?? 3} дня (Meta уточняет цифры задним числом), только
+        чтение.
+      </p>
+      <div className="integr__needs">
+        <span className="eyebrow">Последняя синхронизация</span>
+        <p className="integr__desc">
+          {fmtTime(row?.last_ok_at)}
+          {row?.last_stats ? ` · ${row.last_stats.from} — ${row.last_stats.to}, ${usd} $` : ''}
+          {failing ? ` · ошибка: ${row.last_error}` : ''}
+        </p>
+        <span className="eyebrow">Кабинеты → бренд</span>
+        <ul>
+          {accounts.map(([id, a]) => (
+            <li key={id}>
+              {a.name} <span className="mono">{id}</span> → {a.brand === 'taena' ? 'taena' : 'Neo Diamond'}
+            </li>
+          ))}
+        </ul>
+        <span className="eyebrow">Как считается</span>
+        <ul>
+          <li>Расход в тенге: доллары × официальный курс Нацбанка РК на день расхода{vat ? ` + НДС ${vat}%` : ''}.</li>
+          <li>
+            Бренд — по кабинету. Источник — Instagram. Конвертер — по тому, куда ведёт группа: WhatsApp → «Реклама →
+            WhatsApp», сайт → «Сайт-каталог», профиль или Директ → «Профиль».
+          </li>
+          <li>Привязку кампании можно поправить в «Рекламных кампаниях» — синхронизация её больше не перезапишет.</li>
+          <li>Обращение из рекламы получает бренд по кабинету объявления (номер — из сообщения Kelesu или кода сайта).</li>
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+function AmoCard() {
+  const [row, failing] = useIntegration('amocrm')
   return (
     <div className="integr__card integr__card--ready">
       <div className="integr__head">
@@ -68,7 +112,8 @@ function AmoCard() {
       </div>
       <p className="integr__desc">
         Сделки воронок «Первичная продажа» и «Повторная продажа» с {row?.config?.since ? new Date(row.config.since).toLocaleDateString('ru-RU') : '—'},
-        этапы с датами, суммы, ответственные. Обновление каждые 10 минут, только чтение — в amoCRM центр ничего не пишет.
+        этапы с датами, суммы, ответственные. Обновление каждые 10 минут. В amoCRM центр пишет только «Код обращения» и пустые UTM-поля / «Источник лида» —
+        по первому сообщению клиента.
         Автосделки воронки «Производство» не считаются (это копии проданных сделок).
       </p>
       <div className="integr__needs">
@@ -94,6 +139,7 @@ export default function Integrations() {
   return (
     <div className="integr">
       <AmoCard />
+      <MetaCard />
       <div className="integr__card integr__card--ready">
         <div className="integr__head">
           <h3>Приём сделок</h3>

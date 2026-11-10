@@ -10,6 +10,7 @@
 // city → branch. UTM → demand source / converter is resolved by the deals
 // trigger (resolve_utm), the same rule the whole hub uses.
 import { createClient, SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { adShort } from '../_shared/inquiry.js'
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
@@ -97,7 +98,7 @@ async function storeEvents(db: SupabaseClient, events: any[]) {
 
 // ------------------------------------------------------------------ context
 async function loadContext(db: SupabaseClient, get: ReturnType<typeof amoClient>, cfg: Cfg) {
-  const [brands, branches, stages, tasks, sources, authUsers, amoUsers, profiles, amoFields] = await Promise.all([
+  const [brands, branches, stages, tasks, sources, authUsers, amoUsers, profiles, amoFields, ads] = await Promise.all([
     db.from('brands').select('id, slug').then((r) => r.data ?? []),
     db.from('branches').select('id, name').then((r) => r.data ?? []),
     db.from('funnel_stages').select('id, name, sort_order, is_sale').then((r) => r.data ?? []),
@@ -115,7 +116,23 @@ async function loadContext(db: SupabaseClient, get: ReturnType<typeof amoClient>
       }
       return out
     })(),
+    // Meta ads: brand by ad account; the site code carries a 5-char short id.
+    (async () => {
+      const out: any[] = []
+      for (let from = 0; from < 50000; from += 1000) {
+        const { data } = await db.from('ad_entities').select('external_id, brand_id').eq('level', 'ad').range(from, from + 999)
+        out.push(...(data ?? []))
+        if (!data || data.length < 1000) break
+      }
+      return out
+    })(),
   ])
+  const adBrand = new Map(ads.map((a: any) => [a.external_id, a.brand_id]))
+  const adByShort = new Map<string, string>()
+  for (const a of ads) {
+    const k = adShort(a.external_id)
+    if (k) adByShort.set(k, adByShort.has(k) && adByShort.get(k) !== a.external_id ? '' : a.external_id)
+  }
   // Optional explicit fields, found by name: «Лид-менеджер», «Консультант», «Бренд».
   const fieldNamed = (...names: string[]) => amoFields.find((f: any) => names.includes(norm(f.name)))?.id ?? null
   const named = {
@@ -145,7 +162,7 @@ async function loadContext(db: SupabaseClient, get: ReturnType<typeof amoClient>
   }
   const stageByName = new Map(stages.map((s: any) => [s.name, s]))
   const defaultBrand = brands.find((b: any) => b.slug === 'neodiamond') ?? brands[0]
-  return { brands, branches, stages, tasks, sources, profileOfAmo, profileByName, named, stageByName, defaultBrand }
+  return { brands, branches, stages, tasks, sources, profileOfAmo, profileByName, named, stageByName, defaultBrand, adBrand, adByShort }
 }
 type Ctx = Awaited<ReturnType<typeof loadContext>>
 
@@ -197,9 +214,18 @@ export function mapLead(lead: Lead, evs: any[], cfg: Cfg, ctx: Ctx) {
   const tags = tagsOf(lead)
   const brandText = ctx.named.brand ? norm(fieldText(lead, ctx.named.brand)) : ''
   const brandSlug = Object.entries(cfg.brand_tags || {}).find(([t]) => tags.includes(norm(t)))?.[1]
+  // Ad id: Meta field, else utm_term (full id or the site code's 5-char short id).
+  const metaAd = fieldText(lead, F.meta_ad_id)
+  const term = fieldText(lead, F.utm_term)
+  const adId =
+    (metaAd && /^\d{6,}$/.test(metaAd) ? metaAd : null) ??
+    (term && /^\d{6,}$/.test(term) ? term : null) ??
+    (term && /^[0-9a-z]{5}$/.test(term) ? ctx.adByShort.get(term) || null : null)
+  const adBrandId = adId ? ctx.adBrand.get(adId) : null
   const brand =
     (brandText && ctx.brands.find((b: any) => norm(b.slug) === brandText || norm(b.name) === brandText)) ||
     (brandSlug && ctx.brands.find((b: any) => b.slug === brandSlug)) ||
+    (adBrandId && ctx.brands.find((b: any) => b.id === adBrandId)) ||
     ctx.defaultBrand
   const pipe = cfg.pipelines[String(lead.pipeline_id)]
   const isRepeat = !!pipe?.repeat || tags.some((t: string) => (cfg.repeat_tags || []).includes(t))
@@ -213,8 +239,6 @@ export function mapLead(lead: Lead, evs: any[], cfg: Cfg, ctx: Ctx) {
     utm_term: fieldText(lead, F.utm_term),
   }
   const srcEnum = fieldEnum(lead, F.lead_source)
-  const metaAd = fieldText(lead, F.meta_ad_id)
-  const adId = metaAd && /^\d{6,}$/.test(metaAd) ? metaAd : null
   if (!utm.utm_source && !utm.utm_medium) {
     const m = srcEnum ? cfg.lead_source_utm?.[srcEnum] : null
     if (m) Object.assign(utm, m)

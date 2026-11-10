@@ -55,6 +55,7 @@ export default function AdCampaigns() {
       brand_id: next.brand_id,
       demand_source_id: next.demand_source_id || null,
       converter_id: next.converter_id || null,
+      mapped_by_hand: true,
     }
     const { data: groups } = await supabase.from('ad_entities').select('id').eq('parent_id', camp.id)
     const ids = [camp.id, ...(groups ?? []).map((g) => g.id)]
