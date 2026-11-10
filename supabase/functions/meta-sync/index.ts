@@ -201,7 +201,8 @@ Deno.serve(async (req) => {
   const cfg: Cfg = integ.config
   const all = meta(Deno.env.get('META_TOKEN')!, cfg.api ?? 'v21.0')
 
-  const today = new Date()
+  // Кабинеты в часовом поясе Алматы (UTC+5): «сегодня» — по нему, а не по UTC.
+  const today = new Date(Date.now() + 5 * 3600000)
   const from =
     mode === 'range' ? body.from : ymd(new Date(today.getTime() - (Number(cfg.incremental_days ?? 3) - 1) * 86400000))
   const to = mode === 'range' ? body.to ?? ymd(today) : ymd(today)
