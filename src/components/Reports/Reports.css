@@ -228,3 +228,5 @@
 .rnp__cv .rnp__name { background: var(--paper-050); font-style: italic; }
 .rnp__good { color: #1e6440; }
 .rnp__bad { color: #b3261e; }
+.rnp__section td { background: var(--paper-100); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-400); padding-top: 10px; padding-bottom: 6px; }
+.rnp__section .rnp__name { background: var(--paper-100); }

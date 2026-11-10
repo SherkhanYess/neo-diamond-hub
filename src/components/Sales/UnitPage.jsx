@@ -3,12 +3,13 @@ import { useParams, Link } from 'react-router-dom'
 import { useSalesData } from '../../lib/v2/useSalesData'
 import { unitReport, credited, SALES_METRICS, UNIT_KINDS } from '../../lib/v2/sales'
 import { monthPace } from '../../lib/v2/metrics'
-import { useSalesFilters, rnpPlans } from './SalesDeptPage'
+import { useSalesFilters, salesStagePlans } from './SalesDeptPage'
 import SalesFilters from './SalesFilters'
 import PlanFactCell from '../Reports/PlanFactCell'
 import KpiCards from '../v2/KpiCards'
 import { fmtValue } from '../v2/PlanFactTree'
-import SalesRnP from '../Reports/SalesRnP'
+import PulseTable from '../v2/PulseTable'
+import { funnelRows } from '../../lib/v2/pulse'
 import EmptyState from '../common/EmptyState'
 import '../v2/v2.css'
 import './Sales.css'
@@ -61,7 +62,7 @@ export default function UnitPage() {
   const mismatches = Object.entries(rep.unitPlan)
     .filter(([k, v]) => rep.peoplePlan[k] != null && Math.abs(rep.peoplePlan[k] - v) > 0.0001)
     .map(([k, v]) => `${SALES_METRICS[k]?.label ?? k}: личные ${fmtValue(SALES_METRICS[k]?.fmt, rep.peoplePlan[k])} ≠ подотдел ${fmtValue(SALES_METRICS[k]?.fmt, v)}`)
-  const rp = rnpPlans(d.targets, d.stages, unit.id)
+  const rp = salesStagePlans(d.targets, d.stages, unit.id)
   const name = (pid) => d.people[pid]?.full_name || '—'
 
   return (
@@ -147,15 +148,12 @@ export default function UnitPage() {
         Итог подотдела — сумма сотрудников. Конверсии и скорость ответа — по сумме сделок, не среднее процентов.
       </p>
 
-      <h3 className="src__section">РнП подотдела</h3>
-      <SalesRnP
-        cohort={{ deals: unitDeals, events: unitEvents }}
-        plan={null}
-        orderedStages={d.dict.stages}
-        filters={{ month: filters.value.month }}
-        thresholds={{ low: 90, high: 100 }}
-        stagePlans={rp.stagePlans}
-        revenuePlan={rp.revenuePlan}
+      <h3 className="src__section">План-факт подотдела</h3>
+      <PulseTable
+        rows={funnelRows({ deals: unitDeals, events: unitEvents, orderedStages: d.dict.stages, ...rp }).rows}
+        month={filters.value.month}
+        pace={pace}
+        storageKey="sales.unit.hidden"
       />
     </div>
   )

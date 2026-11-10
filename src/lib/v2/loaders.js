@@ -59,7 +59,7 @@ export async function loadManualSpend(month, brandId) {
 export async function loadCommercePlans(month, { brandId = null, branchId = null } = {}) {
   let q = supabase
     .from('plans')
-    .select('id, branch_id, brand_id, version, computed')
+    .select('id, branch_id, brand_id, version, computed, conversions:plan_sales_conversions(from_stage_id, to_stage_id, rate)')
     .eq('month', monthBounds(month).start)
     .eq('kind', 'commerce')
     .eq('status', 'approved')

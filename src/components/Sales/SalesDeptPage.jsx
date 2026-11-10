@@ -6,7 +6,8 @@ import { monthPace } from '../../lib/v2/metrics'
 import SalesFilters, { currentMonth } from './SalesFilters'
 import KpiCards from '../v2/KpiCards'
 import { fmtValue } from '../v2/PlanFactTree'
-import SalesRnP from '../Reports/SalesRnP'
+import PulseTable from '../v2/PulseTable'
+import { funnelRows } from '../../lib/v2/pulse'
 import FunnelView from '../Reports/FunnelView'
 import EmptyState from '../common/EmptyState'
 import '../v2/v2.css'
@@ -30,8 +31,8 @@ export function useSalesFilters() {
   return { value, onChange, qs }
 }
 
-// Sales targets → РнП plan per stage (meetings held, sales) and revenue.
-export function rnpPlans(targets, stages, unitId = null) {
+// Sales targets → plan per stage (meetings held, sales) and revenue.
+export function salesStagePlans(targets, stages, unitId = null) {
   const pick = (metric) => {
     const own = targets.filter((t) => (t.unit_id ?? null) === unitId && !t.profile_id && t.metric === metric)
     if (own.length) return own.reduce((a, t) => a + Number(t.value), 0)
@@ -46,14 +47,14 @@ export function rnpPlans(targets, stages, unitId = null) {
   if (held != null && stages.held) plans[stages.held] = Number(held)
   const sales = pick('sales') ?? pick('repeat_sales')
   if (sales != null && stages.sale) plans[stages.sale] = sales
-  return { stagePlans: Object.keys(plans).length ? plans : null, revenuePlan: pick('revenue') ?? pick('repeat_revenue') }
+  return { stagePlans: plans, revenuePlan: pick('revenue') ?? pick('repeat_revenue') }
 }
 
 // Отдел продаж — зона РОПа: подотделы, люди, общая аналитика.
 export default function SalesDeptPage() {
   const navigate = useNavigate()
   const filters = useSalesFilters()
-  const [view, setView] = useState('rnp')
+  const [view, setView] = useState('table')
   const d = useSalesData(filters.value)
 
   const rep = useMemo(
@@ -79,7 +80,8 @@ export default function SalesDeptPage() {
 
   const brandRows = salesBy(d.deals, 'brand_id')
   const taskRows = salesBy(d.deals, 'client_task_id')
-  const rp = rnpPlans(d.targets, d.stages)
+  const rp = salesStagePlans(d.targets, d.stages)
+  const tableRows = funnelRows({ deals: d.deals, events: d.events, orderedStages: d.dict.stages, ...rp }).rows
   const gapLines = [
     rep.gaps.held_without_lead > 0 && `${rep.gaps.held_without_lead} встреч без лид-менеджера из Лид-центра`,
     rep.gaps.sales_without_consultant > 0 && `${rep.gaps.sales_without_consultant} продаж без консультанта из подотдела «Консультации»`,
@@ -179,23 +181,15 @@ export default function SalesDeptPage() {
           </div>
 
           <div className="rep__tabs" style={{ marginTop: 'var(--space-4)' }}>
-            <button className={view === 'rnp' ? 'is-active' : ''} onClick={() => setView('rnp')}>
-              РнП отдела
+            <button className={view === 'table' ? 'is-active' : ''} onClick={() => setView('table')}>
+              План-факт
             </button>
             <button className={view === 'funnel' ? 'is-active' : ''} onClick={() => setView('funnel')}>
               Воронка
             </button>
           </div>
-          {view === 'rnp' ? (
-            <SalesRnP
-              cohort={{ deals: d.deals, events: d.events }}
-              plan={null}
-              orderedStages={d.dict.stages}
-              filters={{ month: filters.value.month }}
-              thresholds={{ low: 90, high: 100 }}
-              stagePlans={rp.stagePlans}
-              revenuePlan={rp.revenuePlan}
-            />
+          {view === 'table' ? (
+            <PulseTable rows={tableRows} month={filters.value.month} pace={pace} storageKey="sales.table.hidden" />
           ) : (
             <FunnelView cohort={{ deals: d.deals, events: d.events }} plan={null} orderedStages={d.dict.stages} filters={{}} />
           )}
