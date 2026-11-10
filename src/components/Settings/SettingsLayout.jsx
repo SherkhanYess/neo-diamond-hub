@@ -35,7 +35,7 @@ const GROUPS = [
   {
     title: 'Бренды',
     items: [
-      { key: 'brands', label: 'Бренды', render: (b) => <CrudSection key={b} config={brandsConfig} /> },
+      { key: 'brands', label: 'Бренды', render: (b, ctx) => <CrudSection key={b} config={brandsConfig} onChanged={ctx.reloadBrands} /> },
       { key: 'client_tasks', label: 'Клиентские задачи', brand: true, render: (b) => <CrudSection key={b} config={clientTasksConfig} /> },
       { key: 'demand_sources', label: 'Источники спроса', brand: true, render: (b) => <CrudSection key={b} config={demandSourcesConfig} /> },
       { key: 'converters', label: 'Конвертеры', brand: true, render: (b) => <CrudSection key={b} config={convertersConfig} /> },
@@ -72,7 +72,7 @@ const ALL = GROUPS.flatMap((g) => g.items)
 
 export default function SettingsLayout() {
   const [active, setActive] = useState('users')
-  const { isAll, currentBrand, brandId } = useBrand()
+  const { isAll, currentBrand, brandId, reloadBrands } = useBrand()
   const section = ALL.find((s) => s.key === active)
 
   return (
@@ -100,7 +100,7 @@ export default function SettingsLayout() {
             <span className="settings__brand">{isAll ? 'все бренды' : currentBrand?.name}</span>
           )}
         </h2>
-        {section.render(brandId)}
+        {section.render(brandId, { reloadBrands })}
       </section>
     </div>
   )

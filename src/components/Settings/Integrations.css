@@ -41,3 +41,35 @@
 .integr__needs li {
   margin-bottom: 4px;
 }
+
+.integr__card--ready {
+  margin-bottom: var(--space-4);
+  border-color: var(--ink-800);
+}
+.integr__status--ready {
+  color: #1e6440;
+  border-color: rgba(30, 100, 60, 0.4);
+}
+.integr__code {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--paper-100);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 6px 0 12px;
+  overflow-x: auto;
+  color: var(--ink-800);
+}
+.integr__pre {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  background: var(--paper-100);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 6px 0 12px;
+  overflow-x: auto;
+  color: var(--ink-800);
+  white-space: pre;
+}

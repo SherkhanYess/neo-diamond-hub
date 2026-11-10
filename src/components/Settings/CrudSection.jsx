@@ -22,7 +22,7 @@ import './CrudSection.css'
 // config: { table, title, singular, columns, fields, select?, uniqueName?, nameRequired?, rowLabel? }
 // field:  { key, label, type: 'text'|'number'|'date'|'select', options?, optionsFrom?,
 //           optionsSelect?, optionLabel?(row), optional?, hint? }
-export default function CrudSection({ config }) {
+export default function CrudSection({ config, onChanged }) {
   const { profile } = useSession()
   const { brandFilter, isAll, brands, brandName } = useBrand()
   const actorId = profile?.id
@@ -59,6 +59,11 @@ export default function CrudSection({ config }) {
   useEffect(() => {
     load()
   }, [load])
+  // After a change: reload the list and let the owner (e.g. brands) refresh too.
+  const reloadAll = useCallback(async () => {
+    await load()
+    onChanged?.()
+  }, [load, onChanged])
 
   // Option lists for select fields (brand-filtered for brand-owned tables).
   useEffect(() => {
@@ -150,7 +155,7 @@ export default function CrudSection({ config }) {
         await createRef(config.table, payload, actorId)
       }
       closeForm()
-      await load()
+      await reloadAll()
       toast.show({ message: 'Сохранено.' })
     } catch (e) {
       setError('Не удалось сохранить: ' + (e?.message || 'ошибка'))
@@ -159,13 +164,13 @@ export default function CrudSection({ config }) {
 
   const doArchive = async (row) => {
     await archiveRef(config.table, row.id, actorId)
-    await load()
+    await reloadAll()
     toast.show({
       message: `«${rowLabel(row)}» в архиве.`,
       actionLabel: 'Отменить',
       onAction: async () => {
         await unarchiveRef(config.table, row.id, actorId)
-        await load()
+        await reloadAll()
       },
     })
   }
@@ -173,7 +178,7 @@ export default function CrudSection({ config }) {
   const doDelete = async (row) => {
     try {
       await deleteRef(config.table, row.id, actorId)
-      await load()
+      await reloadAll()
       toast.show({ message: `«${rowLabel(row)}» удалён.` })
     } catch {
       // A reference appeared between the check and the delete (FK violation):
