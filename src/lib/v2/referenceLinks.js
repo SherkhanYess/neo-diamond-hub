@@ -3,8 +3,12 @@
 // Код в конце сообщения распознаёт вебхук amocrm-hook (_shared/inquiry.js):
 // [N·ib] — Neo Diamond, шапка профиля; [T·is] — taena, сторис и т. д.
 
-// Из профиля все пишут в единый лид-центр (номер Алматы) — и Алматы, и Астана.
-export const SHOWROOMS = [{ city: 'Лид-центр', phone: '77766708505', slug: 'a' }]
+// Из профиля пишут в единый лид-центр (номер Алматы). У Neo Diamond Астаны в bio
+// своя ссылка на номер Астаны — строка показывается, только если ссылка есть.
+export const SHOWROOMS = [
+  { city: 'Лид-центр', phone: '77766708505', slug: 'a' },
+  { city: 'Астана', phone: '77776908505', slug: 's', optional: true },
+]
 
 // Instagram не принимает длинную ссылку wa.me с текстом, поэтому в bio и
 // сторис ставятся официальные короткие ссылки WhatsApp (wa.me/message/…).
@@ -13,6 +17,10 @@ export const SHOWROOMS = [{ city: 'Лид-центр', phone: '77766708505', slu
 export const OFFICIAL_LINKS = {
   'N-ib-a': {
     url: 'https://wa.me/message/QPTCPWFIIOSSJ1',
+    text: 'Здравствуйте, хочу получить каталог и обсудить украшение! Код обращения - [N·ib]',
+  },
+  'N-ib-s': {
+    url: 'https://wa.me/message/Z4TTV2U3HFANN1',
     text: 'Здравствуйте, хочу получить каталог и обсудить украшение! Код обращения - [N·ib]',
   },
   'N-is-a': {
@@ -56,7 +64,7 @@ export function profileLinks() {
         links: SHOWROOMS.map((s) => {
           const official = OFFICIAL_LINKS[`${b.letter}-${p.entry}-${s.slug}`] ?? null
           return { ...s, url: waLink(s.phone, message), official }
-        }),
+        }).filter((l) => l.official || !l.optional),
       }
     }),
   }))

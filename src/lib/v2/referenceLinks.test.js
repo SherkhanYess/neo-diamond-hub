@@ -7,7 +7,7 @@ describe('profileLinks', () => {
 
   it('2 бренда × 2 размещения × единый лид-центр', () => {
     expect(all).toHaveLength(2)
-    expect(all.flatMap((b) => b.placements.flatMap((p) => p.links))).toHaveLength(4)
+    expect(all.flatMap((b) => b.placements.flatMap((p) => p.links))).toHaveLength(5)
   })
 
   it('каждый текст несёт код, который понимает вебхук', () => {
