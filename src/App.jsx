@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { SessionProvider } from './context/SessionContext'
 import { BrandProvider } from './context/BrandContext'
 import { ToastProvider } from './components/common/Toast'
@@ -8,11 +8,10 @@ import LoginPage from './components/Auth/LoginPage'
 import SettingsLayout from './components/Settings/SettingsLayout'
 import DashboardPage from './components/Dashboard/DashboardPage'
 import PlanningPage from './components/Planning/PlanningPage'
-import MarketingPage from './components/Reports/MarketingPage'
+import SourcesPage from './components/Marketing/SourcesPage'
+import SourcePage from './components/Marketing/SourcePage'
 import SalesPage from './components/Reports/SalesPage'
 import DecisionsPage from './components/Decisions/DecisionsPage'
-import TaplinkPage from './components/Taplink/TaplinkPage'
-import PerformancePage from './components/Reports/PerformancePage'
 import CommercePage from './components/Commerce/CommercePage'
 
 export default function App() {
@@ -58,18 +57,19 @@ export default function App() {
                 path="/marketing"
                 element={
                   <ProtectedRoute requireCap="view_reports">
-                    <MarketingPage />
+                    <SourcesPage />
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/marketing/performance"
+                path="/marketing/source/:sourceId"
                 element={
                   <ProtectedRoute requireCap="view_reports">
-                    <PerformancePage />
+                    <SourcePage />
                   </ProtectedRoute>
                 }
               />
+              <Route path="/marketing/performance" element={<Navigate to="/marketing" replace />} />
               <Route
                 path="/sales"
                 element={
@@ -78,14 +78,8 @@ export default function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/taplink"
-                element={
-                  <ProtectedRoute requireCap="view_reports">
-                    <TaplinkPage />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Таплинк is now the «Профиль» converter inside Instagram. */}
+              <Route path="/taplink" element={<Navigate to="/marketing" replace />} />
               <Route
                 path="/decisions"
                 element={

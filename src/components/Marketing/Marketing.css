@@ -1,0 +1,115 @@
+.srcgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.srccard {
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  background: var(--paper-000);
+  padding: var(--space-4);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-card);
+  transition: border-color var(--transition-fast);
+}
+.srccard:hover {
+  border-color: var(--ink-400);
+}
+.srccard--idle {
+  opacity: 0.62;
+  box-shadow: none;
+}
+
+.srccard__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.srccard__head h3 {
+  font-size: 20px;
+}
+.srccard__go {
+  color: var(--ink-400);
+}
+
+.srccard__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3) var(--space-4);
+}
+.srccard__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.srccard__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-400);
+  font-weight: 600;
+}
+.srccard__fact {
+  font-size: 17px;
+  color: var(--ink-900);
+}
+.srccard__fact.is-good {
+  color: #1e6440;
+}
+.srccard__fact.is-bad {
+  color: #b3261e;
+}
+.srccard__plan {
+  font-size: 11px;
+  color: var(--ink-400);
+}
+
+.src__title {
+  font-size: 26px;
+}
+.src__section {
+  font-size: 18px;
+  margin: var(--space-5) 0 var(--space-3);
+}
+.src__block {
+  margin: var(--space-3) 0;
+}
+.src__embed {
+  margin-top: var(--space-3);
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  background: var(--paper-050);
+}
+
+.funnelette {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 90px;
+}
+.funnelette span {
+  display: block;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--ink-200);
+}
+.funnelette span:nth-child(2) {
+  background: var(--ink-400);
+}
+.funnelette span:nth-child(3) {
+  background: var(--ink-600);
+}
+.funnelette span:nth-child(4) {
+  background: var(--ink-800);
+}
+
+.perf__muted {
+  color: var(--ink-200);
+}

@@ -100,3 +100,50 @@ export async function loadDictionaries(brandId) {
 }
 
 export { loadCohort }
+
+// «Вход» of each converter for the month: taplink sessions, ad clicks, site
+// sessions. Missing data → no entry (shown as н/д), never a fake zero.
+export async function loadConverterEntries(month, converters, adStats, utmRules = []) {
+  const { start, end } = monthBounds(month)
+  const out = new Map()
+
+  if (converters.some((c) => c.entry_source === 'taplink')) {
+    const rows = await fetchAll(() =>
+      supabase
+        .from('taplink_events')
+        .select('session_id')
+        .eq('event_type', 'page_view')
+        .gte('created_at', start)
+        .lt('created_at', end)
+    ).catch(() => null)
+    if (rows) {
+      const sessions = new Set(rows.map((r) => r.session_id)).size
+      for (const c of converters) if (c.entry_source === 'taplink') out.set(c.id, sessions)
+    }
+  }
+
+  for (const c of converters) {
+    if (c.entry_source !== 'ads') continue
+    out.set(c.id, adStats.filter((r) => r.converter_id === c.id).reduce((a, r) => a + r.clicks, 0))
+  }
+
+  const siteConverters = converters.filter((c) => c.entry_source === 'site')
+  for (const c of siteConverters) {
+    const channel = utmRules.find((r) => r.converter_id === c.id && r.match_source)?.match_source
+    if (!channel) continue
+    const { data, error } = await supabase
+      .from('site_events')
+      .select('session_id')
+      .ilike('utm_source', channel.replace(/\*/g, '%'))
+      .gte('created_at', start)
+      .lt('created_at', end)
+      .limit(50000)
+    if (error) break // the storefront events table is not available in this project
+    out.set(c.id, new Set((data ?? []).map((r) => r.session_id)).size)
+  }
+  return out
+}
+
+export async function loadUtmRules(brandId) {
+  return listRef('utm_rules', { brandId })
+}
