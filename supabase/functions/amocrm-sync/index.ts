@@ -437,7 +437,6 @@ Deno.serve(async (req) => {
           mode === 'events'
             ? await get('events', {
                 'filter[type]': Array.isArray(body.types) && body.types.length ? body.types : EVENT_TYPES,
-                'filter[entity]': ['lead'],
                 'filter[created_at][from]': from,
                 'filter[created_at][to]': to,
                 limit: 100,
@@ -470,7 +469,6 @@ Deno.serve(async (req) => {
     for (let page = 1; page < 200; page++) {
       const r = await get('events', {
         'filter[type]': EVENT_TYPES,
-        'filter[entity]': ['lead'],
         'filter[created_at][from]': cursor,
         limit: 100,
         page,
