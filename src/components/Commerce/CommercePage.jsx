@@ -6,6 +6,7 @@ import { UNKNOWN } from '../../lib/v2/metrics'
 import { periodPace } from '../../lib/v2/period'
 import { usePeriod } from '../../context/PeriodContext'
 import PeriodPicker from '../v2/PeriodPicker'
+import CycleBlock, { useClosedSales } from '../v2/CycleBlock'
 import PlanFactTree from '../v2/PlanFactTree'
 import KpiCards from '../v2/KpiCards'
 import MultiSelect from '../Reports/MultiSelect'
@@ -78,6 +79,7 @@ export default function CommercePage() {
   const [sourceSel, setSourceSel] = useState([])
   const navigate = useNavigate()
   const d = useV2Data({ period, branchId: branchId || null })
+  const closed = useClosedSales(period, { brandId: d.brandId, branchId: branchId || null })
 
   const setMode = (m) => {
     setModeState(m)
@@ -310,6 +312,20 @@ export default function CommercePage() {
             источника (если квалов нет — по плановому бюджету). Источник спроса определяется по UTM с этапа «Обращение».
             Клик по источнику открывает его дашборд в Маркетинге.
           </p>
+          <CycleBlock
+            deals={closed.deals.filter(
+              (x) =>
+                (!taskSel.length || taskSel.includes(x.client_task_id ?? UNKNOWN)) &&
+                (!sourceSel.length || sourceSel.includes(x.demand_source_id ?? UNKNOWN)),
+            )}
+            loading={closed.loading}
+            error={closed.error}
+            groups={[
+              { key: 'task', label: 'По клиентским задачам', keyOf: (x) => x.client_task_id, nameOf: (id) => d.byId.tasks[id]?.name ?? '—' },
+              { key: 'source', label: 'По источникам спроса', keyOf: (x) => x.demand_source_id, nameOf: (id) => d.byId.sources[id]?.name ?? '—' },
+              { key: 'city', label: 'По городам', keyOf: (x) => closed.cities[x.branch_id]?.id, nameOf: (id) => Object.values(closed.cities).find((c) => c.id === id)?.name ?? '—' },
+            ]}
+          />
         </>
       )}
     </div>

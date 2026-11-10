@@ -5,6 +5,7 @@ import { sourceCards, converterFunnels, performanceTree } from '../../lib/v2/mar
 import { periodPace } from '../../lib/v2/period'
 import { usePeriod } from '../../context/PeriodContext'
 import PeriodPicker from '../v2/PeriodPicker'
+import CycleBlock, { useClosedSales } from '../v2/CycleBlock'
 import { loadAdEntities, loadConverterEntries, loadUtmRules } from '../../lib/v2/loaders'
 import { getDisplaySettings } from '../../lib/api/settings'
 import KpiCards from '../v2/KpiCards'
@@ -106,6 +107,8 @@ export default function SourcePage() {
   )
   const deals = useMemo(() => d.deals.filter((x) => x.demand_source_id === sourceId), [d.deals, sourceId])
   const brandOfSource = source?.brand_id
+  const closed = useClosedSales(period, { brandId: d.brandId })
+  const closedHere = useMemo(() => closed.deals.filter((x) => x.demand_source_id === sourceId), [closed.deals, sourceId])
 
   useEffect(() => {
     if (!brandOfSource) return
@@ -297,6 +300,17 @@ export default function SourcePage() {
         квала, доле игнора и квалам; продажи и ROAS на уровне объявления — серым (решения — на уровне кампании и
         группы). Меньше {minQuals} квалов — «мало данных». Аналитика контента и органики появится рядом с Performance.
       </p>
+
+      <CycleBlock
+        title="Цикл сделки по конвертерам"
+        deals={closedHere}
+        loading={closed.loading}
+        error={closed.error}
+        groups={[
+          { key: 'conv', label: 'По конвертерам', keyOf: (x) => x.converter_id, nameOf: (id) => d.byId.converters[id]?.name ?? '—' },
+          { key: 'city', label: 'По городам', keyOf: (x) => closed.cities[x.branch_id]?.id, nameOf: (id) => Object.values(closed.cities).find((c) => c.id === id)?.name ?? '—' },
+        ]}
+      />
 
       {deciding && (
         <DecisionModal

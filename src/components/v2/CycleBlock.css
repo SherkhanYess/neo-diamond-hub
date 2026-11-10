@@ -1,0 +1,45 @@
+.cycle {
+  margin-top: var(--space-5);
+}
+
+.cycle__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.cycle__title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 18px;
+  margin: 0;
+}
+
+.cycle__total {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: 14px;
+  color: var(--ink-400);
+}
+
+.cycle__total b {
+  color: var(--ink-900);
+  margin-left: 4px;
+}
+
+.cycle__tabs {
+  margin-bottom: var(--space-2);
+}
+
+.cycle__table th:not(.rep__lcol) {
+  text-align: right;
+}
+
+.cycle__empty {
+  color: var(--ink-400);
+  font-size: 14px;
+}

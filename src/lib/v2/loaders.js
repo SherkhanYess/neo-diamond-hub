@@ -227,3 +227,19 @@ export async function loadMarketingPlan(month, brandId) {
   }
   return out
 }
+
+// Продажи, закрытые в периоде (по дате продажи) — для цикла сделки.
+export async function loadClosedSales(period, { brandId = null, branchId = null } = {}) {
+  const { start, end } = periodTs(period)
+  return fetchAll(() => {
+    let q = supabase
+      .from('deals')
+      .select('id, created_at, sale_at, revenue, brand_id, branch_id, client_task_id, demand_source_id, converter_id, is_unique, is_repeat')
+      .gte('sale_at', start)
+      .lt('sale_at', end)
+      .order('sale_at', { ascending: true })
+    if (brandId) q = q.eq('brand_id', brandId)
+    if (branchId) q = q.eq('branch_id', branchId)
+    return q
+  })
+}

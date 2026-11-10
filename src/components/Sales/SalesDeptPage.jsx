@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSalesData } from '../../lib/v2/useSalesData'
 import { departmentReport, salesBy, SALES_METRICS, UNIT_KINDS } from '../../lib/v2/sales'
 import SalesFilters from './SalesFilters'
+import CycleBlock, { useClosedSales } from '../v2/CycleBlock'
 import { usePeriod } from '../../context/PeriodContext'
 import { periodPace } from '../../lib/v2/period'
 import KpiCards from '../v2/KpiCards'
@@ -55,6 +56,7 @@ export default function SalesDeptPage() {
   const filters = useSalesFilters()
   const [view, setView] = useState('table')
   const d = useSalesData(filters.value)
+  const closed = useClosedSales(filters.value.period, { brandId: filters.value.brandId || null, branchId: filters.value.branchId || null })
 
   const rep = useMemo(
     () => departmentReport({ units: d.units, members: d.members, deals: d.deals, events: d.events, stages: d.stages, targets: d.targets }),
@@ -204,6 +206,15 @@ export default function SalesDeptPage() {
             Сделка засчитывается по этапам: лид-менеджеру — до «Встреча состоялась», консультанту — продажа, аккаунт-менеджеру —
             повторная продажа. Подотдел = сумма сотрудников, отдел = сумма подотделов. Бренд здесь — фильтр: команда общая.
           </p>
+          <CycleBlock
+            deals={closed.deals}
+            loading={closed.loading}
+            error={closed.error}
+            groups={[
+              { key: 'city', label: 'По городам', keyOf: (x) => closed.cities[x.branch_id]?.id, nameOf: (id) => Object.values(closed.cities).find((c) => c.id === id)?.name ?? '—' },
+              { key: 'task', label: 'По клиентским задачам', keyOf: (x) => x.client_task_id, nameOf: (id) => d.byId.tasks[id]?.name ?? '—' },
+            ]}
+          />
         </>
       )}
     </div>
