@@ -220,7 +220,10 @@ export function mapLead(lead: Lead, evs: any[], cfg: Cfg, ctx: Ctx) {
     if (m) Object.assign(utm, m)
     else if (adId) Object.assign(utm, { utm_source: 'instagram', utm_medium: 'ctwa' })
   }
-  const directName = srcEnum ? cfg.lead_source_direct?.[srcEnum] : null
+  // Источник, который выбирает менеджер (рефералка / сарафанное радио → «Рекомендации»):
+  // конвертер при этом считается по коду, а источник им не перебивается.
+  const referral = tags.some((t: string) => (cfg.referral_tags || []).some((r: string) => t.includes(norm(r))))
+  const directName = (srcEnum ? cfg.lead_source_direct?.[srcEnum] : null) ?? (referral ? 'Рекомендации' : null)
   const direct = directName
     ? ctx.sources.find((s: any) => s.brand_id === brand.id && norm(s.name) === norm(directName))
     : null
@@ -262,6 +265,7 @@ export function mapLead(lead: Lead, evs: any[], cfg: Cfg, ctx: Ctx) {
     branch_id: branch?.id ?? null,
     client_task_id: task?.id ?? null,
     demand_source_id: direct?.id ?? null,
+    demand_source_fixed: !!direct,
     converter_id: null,
     ...utm,
     ad_id: adId,
