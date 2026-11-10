@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { supabase } from '../../lib/supabaseClient'
 import './Integrations.css'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
@@ -30,13 +32,6 @@ Content-Type: application/json
 // External data sources and how the hub receives their data.
 const INTEGRATIONS = [
   {
-    key: 'amocrm',
-    name: 'amoCRM',
-    status: 'ждёт ключей',
-    desc: 'Сделки, этапы, суммы, ответственные. Поля, которые должны ставиться автоматически при создании сделки: бренд, UTM (source / medium / campaign / content / term), лид-менеджер, консультант, аккаунт-менеджер, повторная продажа, клиентская задача (с квалификации).',
-    needs: ['Поддомен аккаунта (neodiamond.amocrm.ru)', 'Интеграция amoCRM: client_id, client_secret, redirect URI', 'Вебхук на смену этапа → точка приёма сделок ниже'],
-  },
-  {
     key: 'meta',
     name: 'Meta Ads',
     status: 'ждёт ключей',
@@ -52,9 +47,53 @@ const INTEGRATIONS = [
   },
 ]
 
+const fmtTime = (t) => (t ? new Date(t).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' }) : '—')
+
+function AmoCard() {
+  const [row, setRow] = useState(null)
+  useEffect(() => {
+    supabase
+      .from('integrations')
+      .select('last_run_at, last_ok_at, last_error, last_stats, config')
+      .eq('key', 'amocrm')
+      .maybeSingle()
+      .then(({ data }) => setRow(data))
+  }, [])
+  const failing = row?.last_error && (!row.last_ok_at || row.last_run_at > row.last_ok_at)
+  return (
+    <div className="integr__card integr__card--ready">
+      <div className="integr__head">
+        <h3>amoCRM</h3>
+        <span className={`integr__status ${failing ? '' : 'integr__status--ready'}`}>{failing ? 'ошибка' : 'подключено'}</span>
+      </div>
+      <p className="integr__desc">
+        Сделки воронок «Первичная продажа» и «Повторная продажа» с {row?.config?.since ? new Date(row.config.since).toLocaleDateString('ru-RU') : '—'},
+        этапы с датами, суммы, ответственные. Обновление каждые 10 минут, только чтение — в amoCRM центр ничего не пишет.
+        Автосделки воронки «Производство» не считаются (это копии проданных сделок).
+      </p>
+      <div className="integr__needs">
+        <span className="eyebrow">Последняя синхронизация</span>
+        <p className="integr__desc">
+          {fmtTime(row?.last_ok_at)}
+          {row?.last_stats ? ` · сделок обновлено: ${row.last_stats.processed ?? 0}` : ''}
+          {failing ? ` · ошибка: ${row.last_error}` : ''}
+        </p>
+        <span className="eyebrow">Как считается</span>
+        <ul>
+          <li>Источник спроса — по UTM, иначе по полю «Источник лида», иначе по «ID объявления Meta» (→ Instagram, реклама).</li>
+          <li>Клиентская задача — по полю «Повод покупки»; филиал — по «Город заказа».</li>
+          <li>Лид-менеджер — кто перевёл сделку в «примерка назначена»; консультант — кто провёл встречу или закрыл продажу.</li>
+          <li>Повторная продажа — воронка «Повторная продажа» (засчитывается аккаунт-менеджеру).</li>
+        </ul>
+      </div>
+    </div>
+  )
+}
+
 export default function Integrations() {
   return (
     <div className="integr">
+      <AmoCard />
       <div className="integr__card integr__card--ready">
         <div className="integr__head">
           <h3>Приём сделок</h3>
