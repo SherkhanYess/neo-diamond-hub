@@ -24,6 +24,7 @@ describe('visibleMenuItems', () => {
     expect(keys).toContain('marketing')
     expect(keys).toContain('sales')
     expect(keys).toContain('commerce')
+    expect(keys).toContain('reference')
     expect(keys).not.toContain('planning')
     expect(keys).not.toContain('decisions')
   })
@@ -33,6 +34,6 @@ describe('visibleMenuItems', () => {
   })
   it('shows everything for an owner with all caps', () => {
     const keys = visibleMenuItems(CAP_KEYS).map((i) => i.key)
-    expect(keys).toEqual(['dashboard', 'commerce', 'marketing', 'sales', 'planning', 'decisions'])
+    expect(keys).toEqual(['dashboard', 'commerce', 'marketing', 'sales', 'planning', 'decisions', 'reference'])
   })
 })

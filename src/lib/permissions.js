@@ -40,6 +40,7 @@ export const MENU_ITEMS = [
   { key: 'sales', label: 'Отдел продаж', path: '/sales', cap: SALES_CAPS },
   { key: 'planning', label: 'Планирование', path: '/planning', cap: ['edit_plan', 'approve_plan', 'sales_all'] },
   { key: 'decisions', label: 'Журнал решений', path: '/decisions', cap: 'decisions' },
+  { key: 'reference', label: 'Справочник', path: '/reference', cap: 'view_reports' },
 ]
 
 export const SETTINGS_ITEM = {

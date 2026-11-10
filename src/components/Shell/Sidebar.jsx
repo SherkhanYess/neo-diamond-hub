@@ -11,6 +11,7 @@ const ICONS = {
   sales: '⇅',
   taplink: '◇',
   decisions: '✓',
+  reference: '❐',
   settings: '⚙',
 }
 

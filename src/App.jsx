@@ -15,6 +15,7 @@ import UnitPage from './components/Sales/UnitPage'
 import { SALES_CAPS } from './lib/permissions'
 import DecisionsPage from './components/Decisions/DecisionsPage'
 import CommercePage from './components/Commerce/CommercePage'
+import ReferencePage from './components/Reference/ReferencePage'
 
 export default function App() {
   return (
@@ -95,6 +96,14 @@ export default function App() {
                 element={
                   <ProtectedRoute requireCap="decisions">
                     <DecisionsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reference"
+                element={
+                  <ProtectedRoute requireCap="view_reports">
+                    <ReferencePage />
                   </ProtectedRoute>
                 }
               />
