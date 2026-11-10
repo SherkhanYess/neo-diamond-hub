@@ -12,18 +12,18 @@ async function copy(text) {
   }
 }
 
-function LinkRow({ city, url, onCopy }) {
+function LinkRow({ city, short, onCopy }) {
   return (
     <div className="ref__link">
       <span className="ref__city">{city}</span>
-      <code className="ref__url mono" title={url}>
-        {url}
+      <code className="ref__url mono" title={short}>
+        {short.replace('https://', '')}
       </code>
       <div className="ref__actions">
-        <button className="btn btn--primary ref__btn" onClick={() => onCopy(url, `Ссылка ${city} скопирована`)}>
+        <button className="btn btn--primary ref__btn" onClick={() => onCopy(short, `Ссылка ${city} скопирована`)}>
           Скопировать
         </button>
-        <a className="btn btn--ghost ref__btn" href={url} target="_blank" rel="noreferrer">
+        <a className="btn btn--ghost ref__btn" href={short} target="_blank" rel="noreferrer">
           Открыть
         </a>
       </div>
@@ -43,7 +43,8 @@ export default function ReferencePage() {
         <div className="eyebrow">Ссылки профиля</div>
         <h2 className="ref__h">WhatsApp из Instagram с кодом обращения</h2>
         <p className="ref__lead">
-          Ставьте в шапку профиля и в стикер-ссылку сторис. Ссылка ведёт сразу в чат, и код в конце сообщения
+          Ставьте в шапку профиля и в стикер-ссылку сторис. Короткая ссылка открывает WhatsApp нужного шоурума с
+          готовым текстом, и код в конце сообщения
           инфоцентр засчитает как конвертер «Профиль». Если человек сотрёт код, обращение уйдёт в «WhatsApp без
           источника». Ссылки на сайт делаются в админке taena, раздел «Ссылки».
         </p>
@@ -65,7 +66,7 @@ export default function ReferencePage() {
                     </button>
                   </p>
                   {p.links.map((l) => (
-                    <LinkRow key={l.phone} city={l.city} url={l.url} onCopy={onCopy} />
+                    <LinkRow key={l.phone} city={l.city} short={l.short} onCopy={onCopy} />
                   ))}
                 </div>
               ))}

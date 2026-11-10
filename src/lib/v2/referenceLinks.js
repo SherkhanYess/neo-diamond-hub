@@ -4,9 +4,15 @@
 // [N·ib] — Neo Diamond, шапка профиля; [T·is] — taena, сторис и т. д.
 
 export const SHOWROOMS = [
-  { city: 'Алматы', phone: '77766708505' },
-  { city: 'Астана', phone: '77776908505' },
+  { city: 'Алматы', phone: '77766708505', slug: 'a' },
+  { city: 'Астана', phone: '77776908505', slug: 's' },
 ]
+
+// Короткие адреса: Instagram не принимает длинную ссылку wa.me с текстом,
+// поэтому в bio стоит /w/<бренд><вход>-<город>, а сайт инфоцентра
+// перенаправляет на WhatsApp (public/_redirects, проверяется тестом).
+export const SHORT_BASE = 'https://neo-diamond-hub.netlify.app'
+export const shortPath = (letter, entry, citySlug) => `/w/${letter.toLowerCase()}${entry}-${citySlug}`
 
 export const PROFILE_PLACEMENTS = [
   { entry: 'ib', label: 'Шапка профиля (bio)', text: 'Здравствуйте! Хотим узнать про кольца.' },
@@ -32,7 +38,10 @@ export function profileLinks() {
         ...p,
         code: profileCode(b.letter, p.entry),
         message,
-        links: SHOWROOMS.map((s) => ({ ...s, url: waLink(s.phone, message) })),
+        links: SHOWROOMS.map((s) => {
+          const path = shortPath(b.letter, p.entry, s.slug)
+          return { ...s, url: waLink(s.phone, message), path, short: SHORT_BASE + path }
+        }),
       }
     }),
   }))

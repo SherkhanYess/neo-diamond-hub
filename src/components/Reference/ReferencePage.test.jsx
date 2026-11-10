@@ -15,7 +15,7 @@ describe('ReferencePage', () => {
     expect(screen.getAllByRole('button', { name: 'Скопировать' })).toHaveLength(8)
     const open = screen.getAllByRole('link', { name: 'Открыть' })
     expect(open).toHaveLength(8)
-    expect(open.every((a) => a.getAttribute('href').startsWith('https://wa.me/77'))).toBe(true)
+    expect(open.every((a) => /^https:\/\/neo-diamond-hub\.netlify\.app\/w\/[nt]i[bs]-[as]$/.test(a.getAttribute('href')))).toBe(true)
     expect(screen.getByText('[2ГИС]')).toBeInTheDocument()
   })
 })

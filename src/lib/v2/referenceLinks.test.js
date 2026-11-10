@@ -10,6 +10,16 @@ describe('profileLinks', () => {
     expect(all.flatMap((b) => b.placements.flatMap((p) => p.links))).toHaveLength(8)
   })
 
+  it('короткие ссылки есть в public/_redirects и ведут на ту же длинную', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { redirectsText } = await import('../../../scripts/gen-redirects.mjs')
+    const file = readFileSync(`${process.cwd()}/public/_redirects`, 'utf8')
+    expect(file).toBe(redirectsText())
+    for (const b of all) for (const p of b.placements) for (const l of p.links) expect(file).toContain(`${l.path}  ${l.url}  302`)
+    expect(file.trim().endsWith('/*    /index.html   200')).toBe(true)
+    expect(all[0].placements[0].links[0].short.length).toBeLessThan(50)
+  })
+
   it('каждая ссылка несёт код, который понимает вебхук', () => {
     for (const b of all)
       for (const p of b.placements)
