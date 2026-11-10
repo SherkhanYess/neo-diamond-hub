@@ -103,12 +103,12 @@ async function processLead(call: ReturnType<typeof amo>, db: any, leadId: number
   const channel = await channelFor(call, leadId)
   const r = parseInquiry(text, channel)
 
-  // Атрибуцию ставим только новому обращению и никогда поверх выбора менеджера.
-  // Слабый признак (WhatsApp / Директ без кода) в старой сделке — это ответ в
-  // идущем разговоре, а не обращение.
-  const isNew = attributable(r.kind, lead.created_at, Math.floor(Date.now() / 1000))
+  // Бот пишет только сообщения с признаком кода. Если кода всё же нет (скобка
+  // в обычном тексте) — поле очищаем и ничего не ставим: канал без кода
+  // считает синхронизация инфоцентра. Выбор менеджера не перебиваем никогда.
+  const isNew = attributable(r.kind)
   const managerPicked = !!fieldOf(lead, LEAD_SOURCE)
-  const cf: any[] = [{ field_id: FIELD, values: [{ value: r.code }] }]
+  const cf: any[] = [{ field_id: FIELD, values: isNew ? [{ value: r.code }] : null }]
   const utmEmpty = Object.values(UTM_FIELDS).every((id) => !fieldOf(lead, id)?.value)
   const writeUtm = isNew && utmEmpty && !managerPicked
   if (writeUtm) {

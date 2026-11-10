@@ -24,7 +24,7 @@ function safeEqual(a: string, b: string) {
 const norm = (s: unknown) => String(s ?? '').trim().toLowerCase()
 const iso = (unix: number) => new Date(unix * 1000).toISOString()
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
-const EVENT_TYPES = ['lead_status_changed', 'entity_responsible_changed']
+const EVENT_TYPES = ['lead_status_changed', 'entity_responsible_changed', 'incoming_chat_message']
 
 type Cfg = Record<string, any>
 type Lead = Record<string, any>
@@ -84,11 +84,36 @@ function eventRow(e: any) {
     status_id: after.lead_status?.id ?? null,
     responsible_id: after.responsible_user?.id ?? null,
     prev_id: before.responsible_user?.id ?? before.lead_status?.id ?? null,
+    origin: after.message?.origin ?? null,
   }
 }
 
+// Chat messages: only the first incoming one per lead is kept (its channel is all
+// the hub needs), so a lead's history stays small and loads in one page.
+async function firstChatOnly(db: SupabaseClient, rows: any[]) {
+  const chat = rows.filter((r) => r.type === 'incoming_chat_message')
+  if (!chat.length) return rows
+  const earliest = new Map<number, any>()
+  for (const r of chat) if (!earliest.has(r.lead_id) || r.at < earliest.get(r.lead_id).at) earliest.set(r.lead_id, r)
+  const ids = [...earliest.keys()]
+  const have = new Map<number, string>()
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data } = await db
+      .from('crm_lead_events')
+      .select('lead_id, at')
+      .eq('type', 'incoming_chat_message')
+      .in('lead_id', ids.slice(i, i + 200))
+    for (const d of data ?? []) have.set(d.lead_id, d.at)
+  }
+  const keep = [...earliest.values()].filter((r) => !have.has(r.lead_id) || r.at < have.get(r.lead_id)!)
+  // A newer «first» row replaced by an earlier one: drop the old one.
+  const replace = keep.filter((r) => have.has(r.lead_id)).map((r) => r.lead_id)
+  if (replace.length) await db.from('crm_lead_events').delete().eq('type', 'incoming_chat_message').in('lead_id', replace)
+  return [...rows.filter((r) => r.type !== 'incoming_chat_message'), ...keep]
+}
+
 async function storeEvents(db: SupabaseClient, events: any[]) {
-  const rows = events.filter((e) => e.entity_type === 'lead').map(eventRow)
+  const rows = await firstChatOnly(db, events.filter((e) => e.entity_type === 'lead').map(eventRow))
   for (let i = 0; i < rows.length; i += 500) {
     const { error } = await db.from('crm_lead_events').upsert(rows.slice(i, i + 500), { onConflict: 'id' })
     if (error) throw new Error(`events: ${error.message}`)
@@ -243,6 +268,16 @@ export function mapLead(lead: Lead, evs: any[], cfg: Cfg, ctx: Ctx) {
     const m = srcEnum ? cfg.lead_source_utm?.[srcEnum] : null
     if (m) Object.assign(utm, m)
     else if (adId) Object.assign(utm, { utm_source: 'instagram', utm_medium: 'ctwa' })
+    else {
+      // Ни кода, ни источника: канал первого входящего сообщения сделки.
+      // Директ → «Профиль», WhatsApp → «Без источника / WhatsApp». В amoCRM не пишем.
+      const first = evs
+        .filter((e: any) => e.type === 'incoming_chat_message' && e.origin)
+        .sort((a: any, b: any) => (a.at < b.at ? -1 : 1))[0]
+      if (first) Object.assign(utm, String(first.origin).startsWith('instagram')
+        ? { utm_source: 'instagram', utm_medium: 'direct' }
+        : { utm_source: 'none', utm_medium: 'whatsapp' })
+    }
   }
   // Источник, который выбирает менеджер (рефералка / сарафанное радио → «Рекомендации»):
   // конвертер при этом считается по коду, а источник им не перебивается.
@@ -321,10 +356,19 @@ async function processLeads(db: SupabaseClient, leads: Lead[], cfg: Cfg, ctx: Ct
 
   const ids = tracked.map((l) => l.id)
   const evs: any[] = []
-  for (let i = 0; i < ids.length; i += 200) {
-    const { data, error } = await db.from('crm_lead_events').select('*').in('lead_id', ids.slice(i, i + 200))
-    if (error) throw new Error(`load events: ${error.message}`)
-    evs.push(...(data ?? []))
+  // Paged: PostgREST returns at most 1000 rows per request.
+  for (let i = 0; i < ids.length; i += 100) {
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await db
+        .from('crm_lead_events')
+        .select('*')
+        .in('lead_id', ids.slice(i, i + 100))
+        .order('id')
+        .range(from, from + 999)
+      if (error) throw new Error(`load events: ${error.message}`)
+      evs.push(...(data ?? []))
+      if (!data || data.length < 1000) break
+    }
   }
   const byLead = new Map<number, any[]>()
   for (const e of evs) {
@@ -392,7 +436,7 @@ Deno.serve(async (req) => {
         const r =
           mode === 'events'
             ? await get('events', {
-                'filter[type]': EVENT_TYPES,
+                'filter[type]': Array.isArray(body.types) && body.types.length ? body.types : EVENT_TYPES,
                 'filter[entity]': ['lead'],
                 'filter[created_at][from]': from,
                 'filter[created_at][to]': to,

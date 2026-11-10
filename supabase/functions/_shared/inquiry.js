@@ -151,14 +151,16 @@ export function parseInquiry(text, channel = null) {
 /** Сколько живёт «новая» сделка: слабый признак старше этого — ответ в разговоре. */
 export const NEW_LEAD_SECONDS = 2 * 86400
 
+/** Нет кода: канал без кода считает сам инфоцентр по событиям чатов, в amoCRM не пишем. */
+export const isWeak = (kind) => kind === 'none' || kind === 'direct'
+
 /**
- * Можно ли по этому обращению ставить источник сделке.
- * Код, ad_id и 2ГИС — всегда (человек пришёл по ссылке); WhatsApp или Директ
- * без кода — только в сделке не старше двух дней.
+ * Можно ли по этому обращению ставить источник сделке в amoCRM.
+ * Только код, ad_id и 2ГИС (человек пришёл по ссылке). Без кода — никогда:
+ * конвертер по каналу ставит синхронизация в инфоцентре.
  */
-export function attributable(kind, leadCreatedAt, now) {
-  if (kind !== 'none' && kind !== 'direct') return true
-  return now - Number(leadCreatedAt) <= NEW_LEAD_SECONDS
+export function attributable(kind) {
+  return !isWeak(kind)
 }
 
 /** Поле уже содержит только код (наша же запись) — разбирать повторно не нужно. */
