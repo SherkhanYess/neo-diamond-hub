@@ -5,6 +5,7 @@ import './Sidebar.css'
 
 const ICONS = {
   dashboard: '▤',
+  commerce: '◎',
   planning: '◫',
   marketing: '◈',
   sales: '⇅',

@@ -13,6 +13,7 @@ import SalesPage from './components/Reports/SalesPage'
 import DecisionsPage from './components/Decisions/DecisionsPage'
 import TaplinkPage from './components/Taplink/TaplinkPage'
 import PerformancePage from './components/Reports/PerformancePage'
+import CommercePage from './components/Commerce/CommercePage'
 
 export default function App() {
   return (
@@ -34,6 +35,14 @@ export default function App() {
                 element={
                   <ProtectedRoute requireCap="view_reports">
                     <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/commerce"
+                element={
+                  <ProtectedRoute requireCap="view_reports">
+                    <CommercePage />
                   </ProtectedRoute>
                 }
               />

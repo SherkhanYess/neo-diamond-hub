@@ -18,10 +18,12 @@ function classify(plan, fact, lowerBetter, thresholds) {
   return 'pf--ok'
 }
 
-// One cell showing plan (light blue) over fact (green/red by performance).
-export default function PlanFactCell({ plan, fact, fmt = 'money', lowerBetter = false, thresholds = { low: 90, high: 100 } }) {
+// One cell showing plan (light blue) beside fact (green/red by performance).
+// pace (0..1) = share of the period elapsed: volumes are judged against
+// plan × pace mid-month, while the full plan is still what's displayed.
+export default function PlanFactCell({ plan, fact, fmt = 'money', lowerBetter = false, thresholds = { low: 90, high: 100 }, pace = 1 }) {
   const f = FMT[fmt] || money
-  const cls = classify(plan, fact, lowerBetter, thresholds)
+  const cls = classify(plan == null ? null : plan * pace, fact, lowerBetter, thresholds)
   return (
     <div className="pf pf--inline">
       <span className="pf__plan mono">{plan == null ? '—' : f(plan)}</span>

@@ -1,0 +1,118 @@
+/* Shared v2 report styles (brand tokens only). */
+.v2__controls {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: var(--space-4);
+}
+.v2__ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-400);
+  font-weight: 600;
+}
+.v2__ctrl .input,
+.v2__ctrl .select {
+  min-width: 170px;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.kpi {
+  border: 1.5px solid var(--paper-300);
+  border-radius: var(--radius-card);
+  background: var(--paper-000);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+}
+button.kpi {
+  cursor: pointer;
+}
+button.kpi:hover {
+  border-color: var(--ink-400);
+}
+.kpi__value {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  color: var(--ink-900);
+  font-variant-numeric: tabular-nums;
+}
+.kpi__plan {
+  font-size: 12px;
+  color: var(--ink-400);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kpi__pct {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+.kpi__pct--good {
+  color: #1e6440;
+}
+.kpi__pct--bad {
+  color: #b3261e;
+}
+
+.pft__name {
+  white-space: nowrap;
+}
+.pft__row--d0 td {
+  background: var(--paper-050);
+  font-weight: 600;
+}
+.pft__row--d0 .rep__lcol {
+  background: var(--paper-050);
+}
+.pft__row--d2 .pft__name {
+  color: var(--ink-400);
+}
+.pft__go {
+  margin-left: 8px;
+  background: transparent;
+  border: 1px solid var(--paper-300);
+  border-radius: var(--radius-pill);
+  color: var(--ink-400);
+  font-size: 11px;
+  padding: 0 7px;
+}
+.pft__go:hover {
+  color: var(--ink-900);
+  border-color: var(--ink-400);
+}
+.pft__legend {
+  font-size: 12px;
+  color: var(--ink-400);
+}
+
+.v2__note {
+  color: var(--ink-400);
+  font-size: 12px;
+  margin: var(--space-2) 0 var(--space-3);
+  max-width: 760px;
+}
+
+.v2__banner {
+  border: 1.5px dashed var(--paper-300);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  color: var(--ink-600);
+  font-size: 13px;
+  margin-bottom: var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
