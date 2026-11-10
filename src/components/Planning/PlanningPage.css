@@ -170,3 +170,89 @@
   color: var(--ink-900);
   font-family: var(--font-mono);
 }
+
+/* v2 planning hub */
+.plan__levels {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+.plan__level-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.plan__level-tabs button {
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--paper-300);
+  background: var(--paper-000);
+  color: var(--ink-600);
+  font-weight: 600;
+  font-size: 14px;
+}
+.plan__level-tabs button.is-active {
+  border: 2px solid var(--ink-800);
+  color: var(--ink-900);
+  background: var(--paper-100);
+}
+.plan__levelhint {
+  font-size: 13px;
+  color: var(--ink-400);
+}
+.plan__levelhint--top {
+  margin: 0 0 var(--space-4);
+}
+.plan__levelbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+.lifecycle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.plan__status.is-approved {
+  border-color: var(--ink-800);
+  color: var(--ink-900);
+}
+.lifecycle__history {
+  font-size: 12px;
+  color: var(--ink-400);
+  border-bottom: 1px dotted var(--ink-200);
+  cursor: help;
+}
+.gaps {
+  border: 1.5px solid rgba(179, 38, 30, 0.35);
+  background: rgba(179, 38, 30, 0.04);
+  border-radius: var(--radius-card);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: 13px;
+  color: var(--ink-800);
+}
+.gaps ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.gaps li {
+  margin-bottom: 4px;
+}
+.gaps__diff {
+  color: #b3261e;
+  font-family: var(--font-mono);
+}
+.gaps--ok {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #1e6440;
+}

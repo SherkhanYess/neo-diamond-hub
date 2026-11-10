@@ -7,7 +7,7 @@ import AppShell from './components/Shell/AppShell'
 import LoginPage from './components/Auth/LoginPage'
 import SettingsLayout from './components/Settings/SettingsLayout'
 import DashboardPage from './components/Dashboard/DashboardPage'
-import PlanningPage from './components/Planning/PlanningPage'
+import PlanningHub from './components/Planning/PlanningHub'
 import SourcesPage from './components/Marketing/SourcesPage'
 import SourcePage from './components/Marketing/SourcePage'
 import SalesDeptPage from './components/Sales/SalesDeptPage'
@@ -50,8 +50,8 @@ export default function App() {
               <Route
                 path="/planning"
                 element={
-                  <ProtectedRoute requireCap="edit_plan">
-                    <PlanningPage />
+                  <ProtectedRoute requireCap={['edit_plan', 'approve_plan', 'sales_all']}>
+                    <PlanningHub />
                   </ProtectedRoute>
                 }
               />

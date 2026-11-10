@@ -27,7 +27,8 @@ function currentMonth() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`
 }
 
-export default function PlanningPage() {
+// Коммерция level of planning. month/setMonth may be lifted to the planning hub.
+export default function PlanningPage({ month: monthProp, setMonth: setMonthProp } = {}) {
   const { profile, caps } = useSession()
   const { brandFilter, currentBrand } = useBrand()
   const actorId = profile?.id
@@ -40,7 +41,9 @@ export default function PlanningPage() {
   const [demandSources, setDemandSources] = useState([])
   const [stages, setStages] = useState([])
 
-  const [month, setMonth] = useState(currentMonth())
+  const [monthLocal, setMonthLocal] = useState(currentMonth())
+  const month = monthProp ?? monthLocal
+  const setMonth = setMonthProp ?? setMonthLocal
   const [branchId, setBranchId] = useState('')
   const [bundle, setBundle] = useState(null)
   const [tasks, setTasks] = useState([])
@@ -213,10 +216,12 @@ export default function PlanningPage() {
   return (
     <div className="plan">
       <div className="plan__controls">
-        <label className="plan__ctrl">
-          <span>Месяц</span>
-          <input className="input" type="month" value={month.slice(0, 7)} onChange={(e) => setMonth(e.target.value + '-01')} />
-        </label>
+        {monthProp == null && (
+          <label className="plan__ctrl">
+            <span>Месяц</span>
+            <input className="input" type="month" value={month.slice(0, 7)} onChange={(e) => setMonth(e.target.value + '-01')} />
+          </label>
+        )}
         <label className="plan__ctrl">
           <span>Филиал</span>
           <select className="select" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
@@ -262,10 +267,10 @@ export default function PlanningPage() {
         <>
           <div className="plan__sheet-tabs">
             <button className={sheet === 'marketing' ? 'is-active' : ''} onClick={() => setSheet('marketing')}>
-              Маркетинг
+              Задачи и источники
             </button>
             <button className={sheet === 'sales' ? 'is-active' : ''} onClick={() => setSheet('sales')}>
-              Продажи
+              Конверсии воронки
             </button>
           </div>
 

@@ -38,7 +38,7 @@ export const MENU_ITEMS = [
   { key: 'commerce', label: 'Коммерция', path: '/commerce', cap: 'view_reports' },
   { key: 'marketing', label: 'Маркетинг', path: '/marketing', cap: 'view_reports' },
   { key: 'sales', label: 'Отдел продаж', path: '/sales', cap: SALES_CAPS },
-  { key: 'planning', label: 'Планирование', path: '/planning', cap: 'edit_plan' },
+  { key: 'planning', label: 'Планирование', path: '/planning', cap: ['edit_plan', 'approve_plan', 'sales_all'] },
   { key: 'decisions', label: 'Журнал решений', path: '/decisions', cap: 'decisions' },
 ]
 
