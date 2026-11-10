@@ -12,7 +12,7 @@
 // Auth: ?key=HOOK_KEY в адресе вебхука. Отвечаем сразу, работа — в фоне:
 // amoCRM отключает вебхуки, которые отвечают медленно.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { parseInquiry, isCodeOnly, channelOf } from '../_shared/inquiry.js'
+import { parseInquiry, isCodeOnly, channelOf, attributable } from '../_shared/inquiry.js'
 
 const FIELD = 424891
 const UTM_FIELDS: Record<string, number> = {
@@ -103,18 +103,24 @@ async function processLead(call: ReturnType<typeof amo>, db: any, leadId: number
   const channel = await channelFor(call, leadId)
   const r = parseInquiry(text, channel)
 
+  // Атрибуцию ставим только новому обращению и никогда поверх выбора менеджера.
+  // Слабый признак (WhatsApp / Директ без кода) в старой сделке — это ответ в
+  // идущем разговоре, а не обращение.
+  const isNew = attributable(r.kind, lead.created_at, Math.floor(Date.now() / 1000))
+  const managerPicked = !!fieldOf(lead, LEAD_SOURCE)
   const cf: any[] = [{ field_id: FIELD, values: [{ value: r.code }] }]
   const utmEmpty = Object.values(UTM_FIELDS).every((id) => !fieldOf(lead, id)?.value)
-  if (utmEmpty) {
+  const writeUtm = isNew && utmEmpty && !managerPicked
+  if (writeUtm) {
     for (const [k, v] of Object.entries(r.utm)) if (v) cf.push({ field_id: UTM_FIELDS[k], values: [{ value: v }] })
   }
   const srcKey = r.kind === 'site' && r.page === 'guide' ? 'site_guide' : r.kind
-  if (!fieldOf(lead, LEAD_SOURCE) && LEAD_SOURCE_ENUM[srcKey]) {
+  if (isNew && !managerPicked && LEAD_SOURCE_ENUM[srcKey]) {
     cf.push({ field_id: LEAD_SOURCE, values: [{ enum_id: LEAD_SOURCE_ENUM[srcKey] }] })
   }
   const patch: any = { custom_fields_values: cf }
   const tags = (lead._embedded?.tags ?? []).map((t: any) => ({ id: t.id }))
-  if (r.brand === 'taena' && !(lead._embedded?.tags ?? []).some((t: any) => t.name?.toLowerCase() === 'taena')) {
+  if (isNew && r.brand === 'taena' && !(lead._embedded?.tags ?? []).some((t: any) => t.name?.toLowerCase() === 'taena')) {
     patch._embedded = { tags: [...tags, { name: 'taena' }] }
   }
   await call('PATCH', `leads/${leadId}`, patch)
@@ -131,9 +137,10 @@ async function processLead(call: ReturnType<typeof amo>, db: any, leadId: number
     ad_id: r.adId,
     ad_short: r.adShort,
     utm: r.utm,
+    is_new: isNew,
   })
   if (error) throw new Error(`crm_inquiries: ${error.message}`)
-  return { leadId, kind: r.kind, code: r.code, utm: utmEmpty }
+  return { leadId, kind: r.kind, code: r.code, isNew, utm: writeUtm }
 }
 
 Deno.serve(async (req) => {

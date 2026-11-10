@@ -1,5 +1,18 @@
 import { describe, it, expect } from 'vitest'
-import { parseInquiry, isCodeOnly, adShort, channelOf } from './inquiry.js'
+import { parseInquiry, isCodeOnly, adShort, channelOf, attributable } from './inquiry.js'
+
+describe('attributable', () => {
+  const now = 1_800_000_000
+  it('сильный признак — всегда', () => {
+    for (const k of ['site', 'profile', 'ctwa', '2gis']) expect(attributable(k, now - 90 * 86400, now)).toBe(true)
+  })
+  it('без кода — только в новой сделке', () => {
+    expect(attributable('none', now - 3600, now)).toBe(true)
+    expect(attributable('direct', now - 86400, now)).toBe(true)
+    expect(attributable('none', now - 3 * 86400, now)).toBe(false)
+    expect(attributable('direct', now - 30 * 86400, now)).toBe(false)
+  })
+})
 
 describe('parseInquiry', () => {
   it('ad_id от Kelesu → Реклама → WhatsApp', () => {

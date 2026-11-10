@@ -148,6 +148,19 @@ export function parseInquiry(text, channel = null) {
   return { ...base, kind: 'none', code: '[WhatsApp]', utm: { utm_source: 'none', utm_medium: 'whatsapp' } }
 }
 
+/** Сколько живёт «новая» сделка: слабый признак старше этого — ответ в разговоре. */
+export const NEW_LEAD_SECONDS = 2 * 86400
+
+/**
+ * Можно ли по этому обращению ставить источник сделке.
+ * Код, ad_id и 2ГИС — всегда (человек пришёл по ссылке); WhatsApp или Директ
+ * без кода — только в сделке не старше двух дней.
+ */
+export function attributable(kind, leadCreatedAt, now) {
+  if (kind !== 'none' && kind !== 'direct') return true
+  return now - Number(leadCreatedAt) <= NEW_LEAD_SECONDS
+}
+
 /** Поле уже содержит только код (наша же запись) — разбирать повторно не нужно. */
 export function isCodeOnly(value) {
   const v = String(value ?? '').trim()
