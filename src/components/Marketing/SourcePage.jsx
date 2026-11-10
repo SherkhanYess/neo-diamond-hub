@@ -307,8 +307,8 @@ export default function SourcePage() {
         loading={closed.loading}
         error={closed.error}
         groups={[
-          { key: 'conv', label: 'По конвертерам', keyOf: (x) => x.converter_id, nameOf: (id) => d.byId.converters[id]?.name ?? '—' },
-          { key: 'city', label: 'По городам', keyOf: (x) => closed.cities[x.branch_id]?.id, nameOf: (id) => Object.values(closed.cities).find((c) => c.id === id)?.name ?? '—' },
+          { key: 'conv', label: 'По конвертерам', col: 'Конвертер', keyOf: (x) => x.converter_id, nameOf: (id) => d.byId.converters[id]?.name ?? '—' },
+          { key: 'city', label: 'По городам', col: 'Город', keyOf: (x) => closed.cities[x.branch_id]?.id, nameOf: (id) => Object.values(closed.cities).find((c) => c.id === id)?.name ?? '—' },
         ]}
       />
 

@@ -211,8 +211,8 @@ export default function SalesDeptPage() {
             loading={closed.loading}
             error={closed.error}
             groups={[
-              { key: 'city', label: 'По городам', keyOf: (x) => closed.cities[x.branch_id]?.id, nameOf: (id) => Object.values(closed.cities).find((c) => c.id === id)?.name ?? '—' },
-              { key: 'task', label: 'По клиентским задачам', keyOf: (x) => x.client_task_id, nameOf: (id) => d.byId.tasks[id]?.name ?? '—' },
+              { key: 'city', label: 'По городам', col: 'Город', keyOf: (x) => closed.cities[x.branch_id]?.id, nameOf: (id) => Object.values(closed.cities).find((c) => c.id === id)?.name ?? '—' },
+              { key: 'task', label: 'По клиентским задачам', col: 'Клиентская задача', keyOf: (x) => x.client_task_id, nameOf: (id) => d.byId.tasks[id]?.name ?? '—' },
             ]}
           />
         </>

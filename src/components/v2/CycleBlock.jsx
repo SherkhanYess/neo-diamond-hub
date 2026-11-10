@@ -32,7 +32,7 @@ export function useClosedSales(period, { brandId = null, branchId = null } = {})
 
 /**
  * Блок «Цикл сделки»: общий цикл и разрезы.
- * groups: [{ key, label, keyOf(deal), nameOf(id) }]
+ * groups: [{ key, label, col, keyOf(deal), nameOf(id) }]
  */
 export default function CycleBlock({ title = 'Цикл сделки', deals, groups, loading, error }) {
   const [tab, setTab] = useState(groups[0]?.key)
@@ -76,7 +76,7 @@ export default function CycleBlock({ title = 'Цикл сделки', deals, gro
           <table className="rep__table cycle__table">
             <thead>
               <tr>
-                <th className="rep__lcol">{group.label.replace(/^По /, '').replace(/^./, (c) => c.toUpperCase())}</th>
+                <th className="rep__lcol">{group.col ?? group.label}</th>
                 <th>Продаж</th>
                 <th>Средний цикл</th>
                 <th>Медиана</th>
