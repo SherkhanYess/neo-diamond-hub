@@ -45,7 +45,7 @@ export const CODE_LEGEND = [
   { code: '[N·ib] / [T·is]', meaning: 'Ссылка из профиля сразу в чат', result: 'Instagram → Профиль (bio, сторис)' },
   { code: '[К-ПР·…] / [П-ОБ]', meaning: 'Старый код сайта taena', result: 'Instagram / без источника → Сайт-каталог' },
   { code: '[2ГИС]', meaning: '«Пишу из приложения 2ГИС»', result: '2ГИС → Карточка 2ГИС' },
-  { code: '[Директ]', meaning: 'Сообщение в Директ без кода', result: 'Instagram → Директ' },
+  { code: '[Директ]', meaning: 'Сообщение в Директ без кода', result: 'Instagram → Профиль (bio, сторис)' },
   { code: '[WhatsApp]', meaning: 'WhatsApp без кода (код стёрли)', result: 'Без источника → WhatsApp' },
 ]
 
