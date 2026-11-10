@@ -34,9 +34,9 @@ export function plannedStageCounts(plans, orderedStages, explicit = {}) {
 
 // Funnel rows: stage counts with CV between consecutive stages, overall CV,
 // then sales and revenue.
-export function funnelRows({ deals, events, orderedStages, stagePlans = {}, ratePlans = {}, revenuePlan = null }) {
+export function funnelRows({ deals, events, orderedStages, stagePlans = {}, ratePlans = {}, revenuePlan = null, basis = 'stage' }) {
   const stages = coreStages(orderedStages)
-  const series = funnelSeries(deals, events, { saleStageId: stages.find((s) => s.is_sale)?.id ?? null })
+  const series = funnelSeries(deals, events, { saleStageId: stages.find((s) => s.is_sale)?.id ?? null, basis })
   const factStage = (id) => sumMap(series.byStageDay.get(id))
   const bucketStage = (id, keys) => sumOverKeys(series.byStageDay.get(id), keys)
   const revBucket = (keys) => keys.reduce((s, k) => s + (series.salesByDay.get(k)?.revenue || 0), 0)

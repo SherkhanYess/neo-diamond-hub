@@ -7,9 +7,11 @@ import { salesScope } from '../permissions'
 // Отдел продаж data: the shared sales department (both brands). Brand is a
 // filter here, not context. Visibility follows the role: РОП → everyone,
 // unit head → own unit(s), employee → self (RLS enforces the same on deals).
-export function useSalesData({ month, brandId = '', branchId = '' }) {
+export function useSalesData({ period, month, brandId = '', branchId = '' }) {
+  const range = period ?? month
+  const rangeKey = typeof range === 'string' ? range : `${range?.from}|${range?.to}`
   const { profile, caps } = useSession()
-  const base = useV2Data({ month, branchId: branchId || null, brandScoped: false })
+  const base = useV2Data({ period: range, branchId: branchId || null, brandScoped: false })
   const [structure, setStructure] = useState({ units: [], members: [], profiles: [] })
   const [targets, setTargets] = useState([])
 
@@ -17,8 +19,9 @@ export function useSalesData({ month, brandId = '', branchId = '' }) {
     loadSalesStructure().then(setStructure)
   }, [])
   useEffect(() => {
-    loadSalesTargets(month).then((r) => setTargets(r.targets))
-  }, [month])
+    loadSalesTargets(range).then((r) => setTargets(r.targets))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangeKey])
 
   const scope = salesScope(caps)
   const me = profile?.id

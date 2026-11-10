@@ -2,14 +2,16 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useV2Data } from '../../lib/v2/useV2Data'
 import { commerceLeaves, buildTree, totals, UNALLOCATED } from '../../lib/v2/commerce'
-import { UNKNOWN, monthPace } from '../../lib/v2/metrics'
+import { UNKNOWN } from '../../lib/v2/metrics'
+import { periodPace } from '../../lib/v2/period'
+import { usePeriod } from '../../context/PeriodContext'
+import PeriodPicker from '../v2/PeriodPicker'
 import PlanFactTree from '../v2/PlanFactTree'
 import KpiCards from '../v2/KpiCards'
 import MultiSelect from '../Reports/MultiSelect'
 import PulseTable from '../v2/PulseTable'
 import { funnelRows, commerceRows, plannedStageCounts, spendByDay } from '../../lib/v2/pulse'
 import { loadMarketingPlan } from '../../lib/v2/loaders'
-import { currentMonth } from '../../lib/month'
 import '../v2/v2.css'
 
 export const COMMERCE_METRICS = [
@@ -62,7 +64,12 @@ function writeLs(key, v) {
 
 // Коммерция — top-manager level: brand → client task → demand source.
 export default function CommercePage() {
-  const [month, setMonth] = useState(currentMonth())
+  const { period } = usePeriod()
+  const [basis, setBasisState] = useState(readLs('com.rnp.basis', 'stage'))
+  const setBasis = (b) => {
+    setBasisState(b)
+    writeLs('com.rnp.basis', b)
+  }
   const [branchId, setBranchId] = useState('')
   const [mode, setModeState] = useState(readLs('com.mode', 'task'))
   const [view, setViewState] = useState(readLs('com.view', 'general'))
@@ -70,7 +77,7 @@ export default function CommercePage() {
   const [taskSel, setTaskSel] = useState([])
   const [sourceSel, setSourceSel] = useState([])
   const navigate = useNavigate()
-  const d = useV2Data({ month, branchId: branchId || null })
+  const d = useV2Data({ period, branchId: branchId || null })
 
   const setMode = (m) => {
     setModeState(m)
@@ -82,10 +89,10 @@ export default function CommercePage() {
   }
 
   useEffect(() => {
-    loadMarketingPlan(month, d.brandId)
+    loadMarketingPlan(period, d.brandId)
       .then(setMktPlan)
       .catch(() => setMktPlan([]))
-  }, [month, d.brandId])
+  }, [period, d.brandId])
 
   const allLeaves = useMemo(
     () =>
@@ -128,7 +135,7 @@ export default function CommercePage() {
     return d.byId.sources[n.id]?.name ?? '—'
   }
 
-  const pace = monthPace(month)
+  const pace = periodPace(period)
   const kpis = COMMERCE_METRICS.map((m) => ({
     key: m.key,
     label: m.label,
@@ -170,6 +177,7 @@ export default function CommercePage() {
       orderedStages: d.dict.stages,
       stagePlans: plannedStageCounts(plansSel, d.dict.stages, explicit),
       revenuePlan: hasPlan ? t.plan.revenue : null,
+      basis,
     })
     const byDay = spendByDay(
       d.adStats.filter((r) => inSel(sourceSel, r.demand_source_id ?? UNKNOWN)),
@@ -202,6 +210,7 @@ export default function CommercePage() {
     taskSel,
     sourceSel,
     t,
+    basis,
   ])
 
   return (
@@ -214,15 +223,10 @@ export default function CommercePage() {
         ))}
       </div>
       <div className="v2__controls">
-        <label className="v2__ctrl">
-          <span>Месяц</span>
-          <input
-            className="input"
-            type="month"
-            value={month.slice(0, 7)}
-            onChange={(e) => setMonth(e.target.value + '-01')}
-          />
-        </label>
+        <div className="v2__ctrl">
+          <span>Период</span>
+          <PeriodPicker />
+        </div>
         <label className="v2__ctrl">
           <span>Филиал</span>
           <select className="select" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
@@ -261,7 +265,7 @@ export default function CommercePage() {
 
       {!d.loading && d.plans.length === 0 && (
         <div className="v2__banner">
-          <span>План коммерции на этот месяц не утверждён — показан только факт.</span>
+          <span>План коммерции на месяцы периода не утверждён — показан только факт.</span>
           <button className="btn btn--ghost" onClick={() => navigate('/planning')}>
             Перейти к планированию
           </button>
@@ -273,8 +277,10 @@ export default function CommercePage() {
       ) : view === 'rnp' ? (
         <PulseTable
           rows={rnp}
-          month={month}
+          period={period}
           pace={pace}
+          basis={basis}
+          onBasis={setBasis}
           storageKey="com.rnp.hidden"
           note="Вложения — расход кабинетов и ручной расход по дням; при выборе задач — их доля расхода источника (по квал-лидам). План воронки — из плана маркетинга (обращения, квалы) и конверсий плана коммерции; продажи и выручка — из плана коммерции."
         />
@@ -296,11 +302,11 @@ export default function CommercePage() {
             thresholds={{ low: 90, high: 100 }}
             pace={pace}
             canOpen={(n) => n.level === 'source_id' && n.id !== UNKNOWN}
-            onRowClick={(n) => navigate(`/marketing/source/${n.id}?month=${month}`)}
+            onRowClick={(n) => navigate(`/marketing/source/${n.id}`)}
           />
           <p className="v2__note">
-            Факт — по когорте обращений месяца. Цвет объёмов в текущем месяце — по темпу: факт против плана на
-            сегодняшний день. Вложения по задаче — доля расхода источника пропорционально квал-лидам задачи из этого
+            Факт — по когорте обращений периода (уникальные лиды; повторные обращения — отдельно). План — месячный,
+            пропорционально дням периода. Цвет объёмов в текущем периоде — по темпу: факт против плана на сегодня. Вложения по задаче — доля расхода источника пропорционально квал-лидам задачи из этого
             источника (если квалов нет — по плановому бюджету). Источник спроса определяется по UTM с этапа «Обращение».
             Клик по источнику открывает его дашборд в Маркетинге.
           </p>

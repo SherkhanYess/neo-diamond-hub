@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useV2Data } from '../../lib/v2/useV2Data'
 import { sourceCards } from '../../lib/v2/marketing'
-import { monthPace } from '../../lib/v2/metrics'
+import { periodPace } from '../../lib/v2/period'
+import { usePeriod } from '../../context/PeriodContext'
+import PeriodPicker from '../v2/PeriodPicker'
 import { loadAdEntities } from '../../lib/v2/loaders'
 import { fmtValue } from '../v2/PlanFactTree'
-import { currentMonth } from '../../lib/month'
 import EmptyState from '../common/EmptyState'
 import '../v2/v2.css'
 import './Marketing.css'
@@ -32,10 +33,9 @@ function Stat({ label, plan, fact, fmt, lowerBetter, pace = 1 }) {
 
 // Маркетинг, уровень 1 — карточки источников спроса бренда.
 export default function SourcesPage() {
-  const [params] = useSearchParams()
-  const [month, setMonth] = useState(params.get('month') || currentMonth())
+  const { period } = usePeriod()
   const navigate = useNavigate()
-  const d = useV2Data({ month })
+  const d = useV2Data({ period })
   const [unmapped, setUnmapped] = useState({ count: 0, spend: 0 })
 
   const { cards, unknown } = useMemo(
@@ -74,7 +74,7 @@ export default function SourcesPage() {
     })
   }, [d.brandId, d.adStats])
 
-  const pace = monthPace(month)
+  const pace = periodPace(period)
 
   if (d.isAll) {
     return (
@@ -93,10 +93,10 @@ export default function SourcesPage() {
   return (
     <div>
       <div className="v2__controls">
-        <label className="v2__ctrl">
-          <span>Месяц</span>
-          <input className="input" type="month" value={month.slice(0, 7)} onChange={(e) => setMonth(e.target.value + '-01')} />
-        </label>
+        <div className="v2__ctrl">
+          <span>Период</span>
+          <PeriodPicker />
+        </div>
       </div>
 
       {unmapped.count > 0 && (
@@ -125,7 +125,7 @@ export default function SourcesPage() {
             <button
               key={c.source.id}
               className={`srccard ${c.fact.leads || c.fact.budget ? '' : 'srccard--idle'}`}
-              onClick={() => navigate(`/marketing/source/${c.source.id}?month=${month}`)}
+              onClick={() => navigate(`/marketing/source/${c.source.id}`)}
             >
               <div className="srccard__head">
                 <h3>{c.source.name}</h3>

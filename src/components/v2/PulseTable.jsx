@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { buckets, monthDays } from '../../lib/reports/timeseries'
+import { buckets } from '../../lib/reports/timeseries'
+import { periodLength, monthPeriod } from '../../lib/v2/period'
 import { pulseTone } from '../../lib/v2/pulse'
 import { fmtValue } from './PlanFactTree'
 import '../Reports/Reports.css'
@@ -17,12 +18,13 @@ function readHidden(key) {
 
 // Plan-fact by day/week: fixed План / Ежедневно / Факт / % columns, then
 // fact-only period columns. Rows come from lib/v2/pulse.js.
-export default function PulseTable({ rows, month, pace = 1, storageKey, note }) {
+export default function PulseTable({ rows, period, month, pace = 1, storageKey, note, basis, onBasis }) {
+  const range = period ?? (month ? monthPeriod(month) : null)
   const [grouping, setGrouping] = useState('week')
   const [hidden, setHiddenState] = useState(() => readHidden(storageKey))
   const [pickOpen, setPickOpen] = useState(false)
-  const cols = useMemo(() => buckets(month, grouping), [month, grouping])
-  const days = monthDays(month).length
+  const cols = useMemo(() => buckets(range, grouping), [range?.from, range?.to, grouping]) // eslint-disable-line react-hooks/exhaustive-deps
+  const days = periodLength(range)
 
   const setHidden = (fn) =>
     setHiddenState((h) => {
@@ -49,6 +51,16 @@ export default function PulseTable({ rows, month, pace = 1, storageKey, note }) 
             По неделям
           </button>
         </div>
+        {onBasis && (
+          <div className="mx__group-toggle" title="К какому дню относить квал, встречу и продажу">
+            <button className={basis === 'lead' ? 'is-active' : ''} onClick={() => onBasis('lead')}>
+              По дате обращения
+            </button>
+            <button className={basis === 'stage' ? 'is-active' : ''} onClick={() => onBasis('stage')}>
+              По дате этапа
+            </button>
+          </div>
+        )}
         <div className="colpick mx__view-btn">
           <button className="btn btn--ghost" onClick={() => setPickOpen((o) => !o)}>
             Метрики
@@ -115,8 +127,13 @@ export default function PulseTable({ rows, month, pace = 1, storageKey, note }) 
         </table>
       </div>
       <p className="rep__note">
-        Слева — план на месяц, план на день, факт и % выполнения; цвет объёмов в текущем месяце — по темпу на сегодня.
-        В колонках по {grouping === 'week' ? 'неделям' : 'дням'} — только факт. «Метрики» скрывают строки. {note}
+        Слева — план на период (месячный план пропорционально дням), план на день, факт и % выполнения; цвет объёмов в текущем периоде — по темпу на сегодня.
+        В колонках по {grouping === 'week' ? 'неделям' : 'дням'} — только факт.{' '}
+        {onBasis &&
+          (basis === 'lead'
+            ? 'По дате обращения: квал, встреча и продажа стоят в дне, когда пришёл лид — прошлые дни дорастают, пока ОП дорабатывает лиды. '
+            : 'По дате этапа: квал, встреча и продажа стоят в дне, когда их сделали — это работа за день. ')}
+        «Метрики» скрывают строки. {note}
       </p>
     </div>
   )

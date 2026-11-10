@@ -1,17 +1,15 @@
-import { currentMonth } from '../../lib/month'
+import PeriodPicker from '../v2/PeriodPicker'
 import '../v2/v2.css'
-
-export { currentMonth }
 
 // Отдел продаж filters: brand is a slice here (both brands share the team).
 export default function SalesFilters({ value, onChange, brands, branches }) {
   const set = (k, v) => onChange({ ...value, [k]: v })
   return (
     <div className="v2__controls">
-      <label className="v2__ctrl">
-        <span>Месяц</span>
-        <input className="input" type="month" value={value.month.slice(0, 7)} onChange={(e) => set('month', e.target.value + '-01')} />
-      </label>
+      <div className="v2__ctrl">
+        <span>Период</span>
+        <PeriodPicker />
+      </div>
       <label className="v2__ctrl">
         <span>Бренд</span>
         <select className="select" value={value.brandId} onChange={(e) => set('brandId', e.target.value)}>

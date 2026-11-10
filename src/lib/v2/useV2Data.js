@@ -8,7 +8,10 @@ const EMPTY_DICT = { brands: [], branches: [], tasks: [], sources: [], converter
 // One loader for every v2 report page: same cohort, same spend, same plans —
 // which is what keeps Коммерция, Маркетинг and Отдел продаж in agreement.
 // `brandScoped: false` ignores the brand switcher (Отдел продаж).
-export function useV2Data({ month, branchId = null, brandScoped = true }) {
+export function useV2Data({ period, month, branchId = null, brandScoped = true }) {
+  // Period { from, to } of the reports, or a month (Планирование).
+  const range = period ?? month
+  const rangeKey = typeof range === 'string' ? range : `${range?.from}|${range?.to}`
   const brand = useBrand()
   const brandId = brandScoped ? brand.brandFilter : null
   const [dict, setDict] = useState(EMPTY_DICT)
@@ -21,15 +24,15 @@ export function useV2Data({ month, branchId = null, brandScoped = true }) {
   }, [brandId])
 
   const reload = useCallback(async () => {
-    if (!month) return
+    if (!range) return
     setLoading(true)
     setError(null)
     try {
       const [cohort, adStats, manual, plans] = await Promise.all([
-        loadCohort(branchId, month, brandId),
-        loadAdStats(month, brandId),
-        loadManualSpend(month, brandId),
-        loadCommercePlans(month, { brandId, branchId }),
+        loadCohort(branchId, range, brandId),
+        loadAdStats(range, brandId),
+        loadManualSpend(range, brandId),
+        loadCommercePlans(range, { brandId, branchId }),
       ])
       setData({ deals: cohort.deals, events: cohort.events, adStats, manual, plans })
     } catch (e) {
@@ -37,7 +40,8 @@ export function useV2Data({ month, branchId = null, brandScoped = true }) {
     } finally {
       setLoading(false)
     }
-  }, [month, branchId, brandId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangeKey, branchId, brandId])
 
   useEffect(() => {
     reload()

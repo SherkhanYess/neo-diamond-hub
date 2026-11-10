@@ -36,6 +36,27 @@ describe('funnelRows', () => {
   })
 })
 
+describe('funnelRows — по дате обращения', () => {
+  // Лид 1 пришёл 1-го, квал 2-го, продажа 3-го: всё ставится на 1-е.
+  const withCreated = deals.map((d) => ({ ...d, created_at: { 1: '2026-11-01T08:00:00', 2: '2026-11-01T08:00:00', 3: '2026-11-08T08:00:00', 4: '2026-11-09T08:00:00' }[d.id] }))
+  const byLead = funnelRows({ deals: withCreated, events, orderedStages: stages, basis: 'lead' })
+  const byStage = funnelRows({ deals: withCreated, events, orderedStages: stages })
+  const row = (f, k) => f.rows.find((r) => r.key === k)
+  it('квал и продажа — в день обращения', () => {
+    expect(row(byLead, 'q').bucket([key(1)])).toBe(2)
+    expect(row(byLead, 'q').bucket([key(2)])).toBe(0)
+    expect(row(byLead, 'revenue').bucket([key(1)])).toBe(500)
+  })
+  it('по дате этапа — в день этапа', () => {
+    expect(row(byStage, 'q').bucket([key(2)])).toBe(2)
+    expect(row(byStage, 'revenue').bucket([key(3)])).toBe(500)
+  })
+  it('итоги за период одинаковые', () => {
+    expect(row(byLead, 'q').fact).toBe(row(byStage, 'q').fact)
+    expect(row(byLead, 'revenue').fact).toBe(row(byStage, 'revenue').fact)
+  })
+})
+
 describe('funnelRows — повторные обращения', () => {
   // Сделка 5 — повторное обращение того же клиента: дошла до продажи.
   const rep = [...deals, { id: 5, is_unique: false, created_at: '2026-11-05T10:00:00', sale_at: '2026-11-06T10:00:00', revenue: 300 }]

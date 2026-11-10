@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useSalesData } from '../../lib/v2/useSalesData'
 import { unitReport, credited, SALES_METRICS, UNIT_KINDS } from '../../lib/v2/sales'
-import { monthPace } from '../../lib/v2/metrics'
+import { periodPace } from '../../lib/v2/period'
 import { useSalesFilters, salesStagePlans } from './SalesDeptPage'
 import SalesFilters from './SalesFilters'
 import PlanFactCell from '../Reports/PlanFactCell'
@@ -47,7 +47,8 @@ export default function UnitPage() {
     )
   }
 
-  const pace = monthPace(filters.value.month)
+  const pace = periodPace(filters.value.period)
+  const [basis, setBasis] = useState('stage')
   const metrics = (unit.kpi?.length ? unit.kpi : ['leads', 'held', 'sales']).filter((k) => SALES_METRICS[k])
   const kpis = metrics.map((k) => ({
     key: k,
@@ -150,8 +151,10 @@ export default function UnitPage() {
 
       <h3 className="src__section">План-факт подотдела</h3>
       <PulseTable
-        rows={funnelRows({ deals: unitDeals, events: unitEvents, orderedStages: d.dict.stages, ...rp }).rows}
-        month={filters.value.month}
+        rows={funnelRows({ deals: unitDeals, events: unitEvents, orderedStages: d.dict.stages, ...rp, basis }).rows}
+        period={filters.value.period}
+        basis={basis}
+        onBasis={setBasis}
         pace={pace}
         storageKey="sales.unit.hidden"
       />

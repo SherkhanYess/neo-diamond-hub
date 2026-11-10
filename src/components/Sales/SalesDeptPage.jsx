@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useSalesData } from '../../lib/v2/useSalesData'
 import { departmentReport, salesBy, SALES_METRICS, UNIT_KINDS } from '../../lib/v2/sales'
-import { monthPace } from '../../lib/v2/metrics'
-import SalesFilters, { currentMonth } from './SalesFilters'
+import SalesFilters from './SalesFilters'
+import { usePeriod } from '../../context/PeriodContext'
+import { periodPace } from '../../lib/v2/period'
 import KpiCards from '../v2/KpiCards'
 import { fmtValue } from '../v2/PlanFactTree'
 import PulseTable from '../v2/PulseTable'
@@ -15,19 +16,17 @@ import './Sales.css'
 
 export function useSalesFilters() {
   const [params, setParams] = useSearchParams()
+  const { period } = usePeriod()
   const value = {
-    month: params.get('month') || currentMonth(),
+    period,
     brandId: params.get('brand') || '',
     branchId: params.get('branch') || '',
   }
   const onChange = (v) =>
-    setParams(
-      Object.fromEntries(
-        Object.entries({ month: v.month, brand: v.brandId, branch: v.branchId }).filter(([, x]) => x)
-      ),
-      { replace: true }
-    )
-  const qs = `?${new URLSearchParams(Object.fromEntries(Object.entries({ month: value.month, brand: value.brandId, branch: value.branchId }).filter(([, x]) => x)))}`
+    setParams(Object.fromEntries(Object.entries({ brand: v.brandId, branch: v.branchId }).filter(([, x]) => x)), {
+      replace: true,
+    })
+  const qs = `?${new URLSearchParams(Object.fromEntries(Object.entries({ brand: value.brandId, branch: value.branchId }).filter(([, x]) => x)))}`
   return { value, onChange, qs }
 }
 
@@ -61,7 +60,8 @@ export default function SalesDeptPage() {
     () => departmentReport({ units: d.units, members: d.members, deals: d.deals, events: d.events, stages: d.stages, targets: d.targets }),
     [d.units, d.members, d.deals, d.events, d.stages, d.targets]
   )
-  const pace = monthPace(filters.value.month)
+  const pace = periodPace(filters.value.period)
+  const [basis, setBasis] = useState('stage')
   const g = rep.general
   const heldPlan = rep.plan.held ?? null
 
@@ -81,7 +81,7 @@ export default function SalesDeptPage() {
   const brandRows = salesBy(d.deals, 'brand_id')
   const taskRows = salesBy(d.deals, 'client_task_id')
   const rp = salesStagePlans(d.targets, d.stages)
-  const tableRows = funnelRows({ deals: d.deals, events: d.events, orderedStages: d.dict.stages, ...rp }).rows
+  const tableRows = funnelRows({ deals: d.deals, events: d.events, orderedStages: d.dict.stages, ...rp, basis }).rows
   const gapLines = [
     rep.gaps.held_without_lead > 0 && `${rep.gaps.held_without_lead} встреч без лид-менеджера из Лид-центра`,
     rep.gaps.sales_without_consultant > 0 && `${rep.gaps.sales_without_consultant} продаж без консультанта из подотдела «Консультации»`,
@@ -189,7 +189,14 @@ export default function SalesDeptPage() {
             </button>
           </div>
           {view === 'table' ? (
-            <PulseTable rows={tableRows} month={filters.value.month} pace={pace} storageKey="sales.table.hidden" />
+            <PulseTable
+              rows={tableRows}
+              period={filters.value.period}
+              pace={pace}
+              basis={basis}
+              onBasis={setBasis}
+              storageKey="sales.table.hidden"
+            />
           ) : (
             <FunnelView cohort={{ deals: d.deals, events: d.events }} plan={null} orderedStages={d.dict.stages} filters={{}} />
           )}

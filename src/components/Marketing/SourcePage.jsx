@@ -1,14 +1,15 @@
 import { Fragment, useState, useMemo, useEffect } from 'react'
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useV2Data } from '../../lib/v2/useV2Data'
 import { sourceCards, converterFunnels, performanceTree } from '../../lib/v2/marketing'
-import { monthPace } from '../../lib/v2/metrics'
+import { periodPace } from '../../lib/v2/period'
+import { usePeriod } from '../../context/PeriodContext'
+import PeriodPicker from '../v2/PeriodPicker'
 import { loadAdEntities, loadConverterEntries, loadUtmRules } from '../../lib/v2/loaders'
 import { getDisplaySettings } from '../../lib/api/settings'
 import KpiCards from '../v2/KpiCards'
 import { fmtValue } from '../v2/PlanFactTree'
 import TaplinkPage from '../Taplink/TaplinkPage'
-import { currentMonth } from '../../lib/month'
 import EmptyState from '../common/EmptyState'
 import DecisionModal from '../Decisions/DecisionModal'
 import '../v2/v2.css'
@@ -87,10 +88,10 @@ function PerfRows({ nodes, depth, open, toggle }) {
 // Маркетинг, уровни 2–3 — дашборд источника: конвертеры и Performance.
 export default function SourcePage() {
   const { sourceId } = useParams()
-  const [params] = useSearchParams()
-  const [month, setMonth] = useState(params.get('month') || currentMonth())
+  const { period } = usePeriod()
+  const month = `${period.from.slice(0, 7)}-01`
   const navigate = useNavigate()
-  const d = useV2Data({ month })
+  const d = useV2Data({ period })
   const [entities, setEntities] = useState([])
   const [entries, setEntries] = useState(new Map())
   const [minQuals, setMinQuals] = useState(10)
@@ -114,8 +115,8 @@ export default function SourcePage() {
 
   useEffect(() => {
     if (!converters.length) return
-    loadUtmRules(brandOfSource).then((rules) => loadConverterEntries(month, converters, d.adStats, rules).then(setEntries))
-  }, [month, converters, d.adStats, brandOfSource])
+    loadUtmRules(brandOfSource).then((rules) => loadConverterEntries(period, converters, d.adStats, rules).then(setEntries))
+  }, [period, converters, d.adStats, brandOfSource])
 
   const card = useMemo(() => {
     if (!source) return null
@@ -163,7 +164,7 @@ export default function SourcePage() {
   }
   if (!card) return <p style={{ color: 'var(--ink-400)' }}>Загрузка…</p>
 
-  const pace = monthPace(month)
+  const pace = periodPace(period)
   const kpis = [
     { key: 'budget', label: 'Бюджет', plan: card.planM.budget, fact: card.factM.budget, fmt: 'money', lowerBetter: true, additive: true },
     { key: 'revenue', label: 'Выручка', plan: card.planM.revenue, fact: card.factM.revenue, fmt: 'money', additive: true },
@@ -179,14 +180,14 @@ export default function SourcePage() {
   return (
     <div>
       <div className="v2__controls">
-        <Link to={`/marketing?month=${month}`} className="crud__link">
+        <Link to="/marketing" className="crud__link">
           ← Источники
         </Link>
         <h2 className="src__title">{source.name}</h2>
-        <label className="v2__ctrl" style={{ marginLeft: 'auto' }}>
-          <span>Месяц</span>
-          <input className="input" type="month" value={month.slice(0, 7)} onChange={(e) => setMonth(e.target.value + '-01')} />
-        </label>
+        <div className="v2__ctrl" style={{ marginLeft: 'auto' }}>
+          <span>Период</span>
+          <PeriodPicker />
+        </div>
         <button className="btn btn--ghost" onClick={() => setDeciding(true)}>
           + Решение по источнику
         </button>

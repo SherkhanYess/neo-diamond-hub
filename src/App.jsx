@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { SessionProvider } from './context/SessionContext'
 import { BrandProvider } from './context/BrandContext'
+import { PeriodProvider } from './context/PeriodContext'
 import { ToastProvider } from './components/common/Toast'
 import ProtectedRoute from './components/Shell/ProtectedRoute'
 import AppShell from './components/Shell/AppShell'
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <SessionProvider>
       <BrandProvider>
+      <PeriodProvider>
       <ToastProvider>
         <BrowserRouter>
           <Routes>
@@ -119,6 +121,7 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </ToastProvider>
+      </PeriodProvider>
       </BrandProvider>
     </SessionProvider>
   )

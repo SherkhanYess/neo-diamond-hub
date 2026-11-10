@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useSession } from '../../context/SessionContext'
 import { useV2Data } from '../../lib/v2/useV2Data'
 import { commerceLeaves, buildTree, totals, UNALLOCATED } from '../../lib/v2/commerce'
-import { UNKNOWN, monthPace, reachedStages } from '../../lib/v2/metrics'
+import { UNKNOWN, reachedStages } from '../../lib/v2/metrics'
+import { periodPace } from '../../lib/v2/period'
+import { usePeriod } from '../../context/PeriodContext'
+import PeriodPicker from '../v2/PeriodPicker'
 import { departmentReport, SALES_METRICS } from '../../lib/v2/sales'
 import { loadSalesStructure, loadSalesTargets } from '../../lib/v2/loaders'
 import { listDecisions, isOverdue } from '../../lib/api/decisions'
 import { salesScope, can } from '../../lib/permissions'
-import { currentMonth } from '../../lib/month'
 import { fmtValue } from '../v2/PlanFactTree'
 import { FunnelChart, BarCompare, ProgressRing } from './Charts'
 import { money } from '../../lib/format'
@@ -41,7 +43,7 @@ const STORAGE = 'dash.widgets'
 export default function DashboardPage() {
   const { caps } = useSession()
   const navigate = useNavigate()
-  const [month, setMonth] = useState(currentMonth())
+  const { period } = usePeriod()
   const [branchId, setBranchId] = useState('')
   const [shown, setShown] = useState(() => {
     try {
@@ -54,7 +56,7 @@ export default function DashboardPage() {
   const [pick, setPick] = useState(false)
   const [decisions, setDecisions] = useState([])
   const [sales, setSales] = useState({ units: [], members: [], targets: [] })
-  const d = useV2Data({ month, branchId: branchId || null })
+  const d = useV2Data({ period, branchId: branchId || null })
 
   useEffect(() => {
     try {
@@ -67,10 +69,10 @@ export default function DashboardPage() {
     listDecisions().then(setDecisions).catch(() => setDecisions([]))
   }, [])
   useEffect(() => {
-    Promise.all([loadSalesStructure(), loadSalesTargets(month)]).then(([s, t]) =>
+    Promise.all([loadSalesStructure(), loadSalesTargets(period)]).then(([s, t]) =>
       setSales({ units: s.units, members: s.members, targets: t.targets })
     )
-  }, [month])
+  }, [period])
 
   const leaves = useMemo(
     () =>
@@ -87,7 +89,7 @@ export default function DashboardPage() {
   const t = useMemo(() => totals(leaves), [leaves])
   const bySource = useMemo(() => buildTree(leaves, ['source_id']), [leaves])
   const byTask = useMemo(() => buildTree(leaves, ['task_id']), [leaves])
-  const pace = monthPace(month)
+  const pace = periodPace(period)
 
   const funnelRows = useMemo(() => {
     const reached = reachedStages(d.events)
@@ -128,7 +130,7 @@ export default function DashboardPage() {
   return (
     <div className="dash">
       <div className="dash__controls">
-        <input className="input" type="month" value={month.slice(0, 7)} onChange={(e) => setMonth(e.target.value + '-01')} />
+        <PeriodPicker />
         <select className="select" value={branchId} onChange={(e) => setBranchId(e.target.value)}>
           <option value="">Все филиалы</option>
           {d.dict.branches.map((b) => (
@@ -185,7 +187,7 @@ export default function DashboardPage() {
                   <b className="mono">{planRev ? money(planRev) : '—'}</b>
                 </div>
                 <div className="dash__row">
-                  <span>Прогноз на конец месяца при текущем темпе</span>
+                  <span>Прогноз на конец периода при текущем темпе</span>
                   <b className="mono">{money(forecast)}</b>
                 </div>
               </div>
@@ -262,7 +264,7 @@ export default function DashboardPage() {
                 <button
                   key={`${r.brand_id}${r.task_id}${r.source_id}`}
                   className="dash__row dash__rowbtn"
-                  onClick={() => navigate(`/marketing/source/${r.source_id}?month=${month}`)}
+                  onClick={() => navigate(`/marketing/source/${r.source_id}`)}
                 >
                   <span>
                     {d.isAll ? `${d.byId.brands[r.brand_id]?.name ?? ''} · ` : ''}

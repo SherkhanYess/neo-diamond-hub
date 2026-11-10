@@ -1,4 +1,5 @@
 // Per-day / per-week aggregation for "рука на пульсе" views.
+import { periodDays } from '../v2/period'
 
 export function dayKey(d) {
   const x = new Date(d)
@@ -19,9 +20,15 @@ export function monthDays(month) {
   return days
 }
 
-// Buckets: one per day, or one per 7-day week.
-export function buckets(month, grouping) {
-  const days = monthDays(month)
+// Buckets: one per day, or one per 7-day week. `range` is a month
+// ('YYYY-MM-01') or a period { from, to } — days of the period.
+export function buckets(range, grouping) {
+  const days =
+    typeof range === 'string'
+      ? monthDays(range)
+      : periodDays(range).map((d) => ({ day: d.day, date: d.date, key: d.key, week: d.week }))
+  const multiMonth = days.length && days[0].date.getMonth() !== days[days.length - 1].date.getMonth()
+  const fmt = (d) => (multiMonth ? `${d.day}.${String(d.date.getMonth() + 1).padStart(2, '0')}` : String(d.day))
   if (grouping === 'week') {
     const byWeek = new Map()
     for (const d of days) {
@@ -31,13 +38,13 @@ export function buckets(month, grouping) {
     return [...byWeek.entries()].map(([week, ds]) => ({
       id: `w${week}`,
       label: `${week}-я неделя`,
-      sub: `${ds[0].day}–${ds[ds.length - 1].day}`,
+      sub: ds.length > 1 ? `${fmt(ds[0])}–${fmt(ds[ds.length - 1])}` : fmt(ds[0]),
       keys: ds.map((d) => d.key),
     }))
   }
   return days.map((d) => ({
     id: d.key,
-    label: String(d.day).padStart(2, '0'),
+    label: multiMonth ? fmt(d) : String(d.day).padStart(2, '0'),
     sub: ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'][d.date.getDay()],
     keys: [d.key],
   }))
@@ -46,7 +53,10 @@ export function buckets(month, grouping) {
 // Count stage entries per day, and sales revenue/orders per day.
 // saleStageId: a repeat inquiry (deal.is_unique === false) counts only at the
 // sale stage — it is not a lead, but its sale is real.
-export function funnelSeries(deals, events, { saleStageId = null } = {}) {
+// basis: 'stage' — a stage counts on the day it was reached (работа ОП за день);
+//        'lead'  — on the day the lead came in (качество трафика этого дня;
+//                  прошлые дни дорастают, пока ОП дорабатывает лиды).
+export function funnelSeries(deals, events, { saleStageId = null, basis = 'stage' } = {}) {
   const dealById = new Map(deals.map((d) => [d.id, d]))
   const byStageDay = new Map() // stage_id -> (dayKey -> count)
   const repeatsByDay = new Map() // dayKey -> repeat inquiries created that day
@@ -60,14 +70,14 @@ export function funnelSeries(deals, events, { saleStageId = null } = {}) {
     if (!deal) continue
     if (deal.is_unique === false && e.stage_id !== saleStageId) continue
     if (!byStageDay.has(e.stage_id)) byStageDay.set(e.stage_id, new Map())
-    const day = dayKey(e.entered_at)
+    const day = dayKey(basis === 'lead' && deal.created_at ? deal.created_at : e.entered_at)
     const m = byStageDay.get(e.stage_id)
     m.set(day, (m.get(day) || 0) + 1)
   }
   const salesByDay = new Map() // dayKey -> {orders, revenue}
   for (const d of deals) {
     if (!d.sale_at) continue
-    const day = dayKey(d.sale_at)
+    const day = dayKey(basis === 'lead' && d.created_at ? d.created_at : d.sale_at)
     const cur = salesByDay.get(day) || { orders: 0, revenue: 0 }
     cur.orders += 1
     cur.revenue += Number(d.revenue) || 0

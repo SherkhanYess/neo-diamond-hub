@@ -1,11 +1,13 @@
 import { supabase } from '../supabaseClient'
 import { fetchAll } from './paging'
 
+import { monthPeriod, periodBounds } from '../v2/period'
+
+// Month ('YYYY-MM-01') or period { from, to } → timestamptz bounds in Almaty time.
 function monthRange(month) {
-  const start = new Date(month)
-  const end = new Date(start)
-  end.setMonth(end.getMonth() + 1)
-  return { start: start.toISOString(), end: end.toISOString() }
+  const p = typeof month === 'string' ? monthPeriod(month) : month
+  const { start, end } = periodBounds(p)
+  return { start: `${start}T00:00:00+05:00`, end: `${end}T00:00:00+05:00` }
 }
 
 // Deals whose обращение (created_at) falls in the month, for a branch and brand.

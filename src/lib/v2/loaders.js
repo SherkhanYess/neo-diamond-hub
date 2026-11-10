@@ -2,6 +2,15 @@ import { supabase } from '../supabaseClient'
 import { fetchAll } from '../api/paging'
 import { loadCohort } from '../api/reports'
 import { listRef } from '../api/references'
+import { monthPeriod, periodBounds, periodMonths, scalePlan } from './period'
+
+// Месяц ('YYYY-MM-01') или период { from, to } → период.
+export const asPeriod = (x) => (typeof x === 'string' ? monthPeriod(x) : x)
+// Границы для timestamptz — по времени Алматы (UTC+5), а не UTC.
+export function periodTs(x) {
+  const { start, end } = periodBounds(asPeriod(x))
+  return { start: `${start}T00:00:00+05:00`, end: `${end}T00:00:00+05:00` }
+}
 
 export function monthBounds(month) {
   const d = new Date(month)
@@ -16,7 +25,7 @@ export function monthBounds(month) {
 
 // Cabinet stats per day with their ad entity (brand, source, converter, hierarchy).
 export async function loadAdStats(month, brandId) {
-  const { start, end } = monthBounds(month)
+  const { start, end } = periodBounds(asPeriod(month))
   const rows = await fetchAll(() =>
     supabase
       .from('ad_daily_stats')
@@ -42,7 +51,7 @@ export async function loadAdStats(month, brandId) {
 }
 
 export async function loadManualSpend(month, brandId) {
-  const { start, end } = monthBounds(month)
+  const { start, end } = periodBounds(asPeriod(month))
   let q = supabase
     .from('spend_entries')
     .select('id, spent_on, amount, brand_id, demand_source_id, converter_id, name')
@@ -55,25 +64,30 @@ export async function loadManualSpend(month, brandId) {
   return data ?? []
 }
 
-// Latest approved commerce plan per (branch, brand) for the month.
+// Latest approved commerce plan per (branch, brand) for each month of the
+// period, scaled to the share of the month inside the period.
 export async function loadCommercePlans(month, { brandId = null, branchId = null } = {}) {
-  let q = supabase
-    .from('plans')
-    .select('id, branch_id, brand_id, version, computed, conversions:plan_sales_conversions(from_stage_id, to_stage_id, rate)')
-    .eq('month', monthBounds(month).start)
-    .eq('kind', 'commerce')
-    .eq('status', 'approved')
-    .order('version', { ascending: false })
-  if (brandId) q = q.eq('brand_id', brandId)
-  if (branchId) q = q.eq('branch_id', branchId)
-  const { data, error } = await q
-  if (error) throw error
-  const latest = new Map()
-  for (const p of data ?? []) {
-    const k = `${p.branch_id}|${p.brand_id}`
-    if (!latest.has(k)) latest.set(k, p)
+  const out = []
+  for (const { month: m, factor } of periodMonths(asPeriod(month))) {
+    let q = supabase
+      .from('plans')
+      .select('id, branch_id, brand_id, version, month, computed, conversions:plan_sales_conversions(from_stage_id, to_stage_id, rate)')
+      .eq('month', m)
+      .eq('kind', 'commerce')
+      .eq('status', 'approved')
+      .order('version', { ascending: false })
+    if (brandId) q = q.eq('brand_id', brandId)
+    if (branchId) q = q.eq('branch_id', branchId)
+    const { data, error } = await q
+    if (error) throw error
+    const latest = new Map()
+    for (const p of data ?? []) {
+      const k = `${p.branch_id}|${p.brand_id}`
+      if (!latest.has(k)) latest.set(k, p)
+    }
+    out.push(...[...latest.values()].map((p) => scalePlan(p, factor)))
   }
-  return [...latest.values()]
+  return out
 }
 
 // Every ad entity of the brand (hierarchy for Performance).
@@ -104,7 +118,7 @@ export { loadCohort }
 // «Вход» of each converter for the month: taplink sessions, ad clicks, site
 // sessions. Missing data → no entry (shown as н/д), never a fake zero.
 export async function loadConverterEntries(month, converters, adStats, utmRules = []) {
-  const { start, end } = monthBounds(month)
+  const { start, end } = periodTs(month)
   const out = new Map()
 
   if (converters.some((c) => c.entry_source === 'taplink')) {
@@ -158,35 +172,58 @@ export async function loadSalesStructure() {
   return { units: units ?? [], members: members ?? [], profiles: profiles ?? [] }
 }
 
-// Targets of the latest approved sales-department plan for the month.
+// Targets of the latest approved sales-department plan, per month of the
+// period: counts and money are scaled to the share of the month, rates are not.
+const RATE_METRIC = /^(cr_|first_response|avg_)/
 export async function loadSalesTargets(month) {
-  const { data: plans, error } = await supabase
-    .from('plans')
-    .select('id, version')
-    .eq('month', monthBounds(month).start)
-    .eq('kind', 'sales')
-    .eq('status', 'approved')
-    .order('version', { ascending: false })
-    .limit(1)
-  if (error) throw error
-  if (!plans?.length) return { planId: null, targets: [] }
-  const { data } = await supabase.from('plan_sales_targets').select('unit_id, profile_id, metric, value').eq('plan_id', plans[0].id)
-  return { planId: plans[0].id, targets: data ?? [] }
+  const all = []
+  let planId = null
+  for (const { month: m, factor } of periodMonths(asPeriod(month))) {
+    const { data: plans, error } = await supabase
+      .from('plans')
+      .select('id, version')
+      .eq('month', m)
+      .eq('kind', 'sales')
+      .eq('status', 'approved')
+      .order('version', { ascending: false })
+      .limit(1)
+    if (error) throw error
+    if (!plans?.length) continue
+    planId = planId ?? plans[0].id
+    const { data } = await supabase.from('plan_sales_targets').select('unit_id, profile_id, metric, value').eq('plan_id', plans[0].id)
+    for (const t of data ?? []) all.push({ ...t, value: RATE_METRIC.test(t.metric) ? Number(t.value) : Number(t.value) * factor, factor })
+  }
+  // Same target in several months: sum counts, average rates (weighted by share).
+  const merged = new Map()
+  for (const t of all) {
+    const k = `${t.unit_id}|${t.profile_id}|${t.metric}`
+    const cur = merged.get(k)
+    if (!cur) merged.set(k, { ...t, w: t.factor })
+    else if (RATE_METRIC.test(t.metric)) merged.set(k, { ...cur, value: (cur.value * cur.w + t.value * t.factor) / (cur.w + t.factor), w: cur.w + t.factor })
+    else merged.set(k, { ...cur, value: cur.value + t.value })
+  }
+  return { planId, targets: [...merged.values()].map(({ w, factor, ...t }) => t) }
 }
 
-// Converter-level marketing plan lines of a brand for the month.
+// Converter-level marketing plan lines of a brand, scaled to the period.
 export async function loadMarketingPlan(month, brandId) {
-  let q = supabase
-    .from('plans')
-    .select('id, brand_id, version, lines:plan_converter_lines(converter_id, budget, leads, quals)')
-    .eq('month', monthBounds(month).start)
-    .eq('kind', 'marketing')
-    .eq('status', 'approved')
-    .order('version', { ascending: false })
-  if (brandId) q = q.eq('brand_id', brandId)
-  const { data, error } = await q
-  if (error) throw error
-  const latest = new Map()
-  for (const p of data ?? []) if (!latest.has(p.brand_id)) latest.set(p.brand_id, p)
-  return [...latest.values()].flatMap((p) => p.lines.map((l) => ({ ...l, brand_id: p.brand_id })))
+  const out = []
+  for (const { month: m, factor } of periodMonths(asPeriod(month))) {
+    let q = supabase
+      .from('plans')
+      .select('id, brand_id, version, lines:plan_converter_lines(converter_id, budget, leads, quals)')
+      .eq('month', m)
+      .eq('kind', 'marketing')
+      .eq('status', 'approved')
+      .order('version', { ascending: false })
+    if (brandId) q = q.eq('brand_id', brandId)
+    const { data, error } = await q
+    if (error) throw error
+    const latest = new Map()
+    for (const p of data ?? []) if (!latest.has(p.brand_id)) latest.set(p.brand_id, p)
+    for (const p of latest.values())
+      for (const l of p.lines)
+        out.push({ ...l, brand_id: p.brand_id, budget: Number(l.budget) * factor, leads: Number(l.leads) * factor, quals: Number(l.quals) * factor })
+  }
+  return out
 }
