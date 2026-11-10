@@ -8,11 +8,16 @@ export const SHOWROOMS = [
   { city: 'Астана', phone: '77776908505', slug: 's' },
 ]
 
-// Короткие адреса: Instagram не принимает длинную ссылку wa.me с текстом,
-// поэтому в bio стоит /w/<бренд><вход>-<город>, а сайт инфоцентра
-// перенаправляет на WhatsApp (public/_redirects, проверяется тестом).
-export const SHORT_BASE = 'https://neo-diamond-hub.netlify.app'
-export const shortPath = (letter, entry, citySlug) => `/w/${letter.toLowerCase()}${entry}-${citySlug}`
+// Instagram не принимает длинную ссылку wa.me с текстом, поэтому в bio и
+// сторис ставятся официальные короткие ссылки WhatsApp (wa.me/message/…).
+// Их создают в WhatsApp Manager → номер → «QR-коды и короткие ссылки»,
+// текст — с кодом. Созданные ссылки записываются сюда: ключ бренд-вход-город.
+export const OFFICIAL_LINKS = {
+  'T-ib-a': {
+    url: 'https://wa.me/message/LRSSKRO3FST6C1',
+    text: 'Здравствуйте! Хочу узнать про кольца и записаться на живой показ. [T·ib]',
+  },
+}
 
 export const PROFILE_PLACEMENTS = [
   { entry: 'ib', label: 'Шапка профиля (bio)', text: 'Здравствуйте! Хотим узнать про кольца.' },
@@ -39,8 +44,8 @@ export function profileLinks() {
         code: profileCode(b.letter, p.entry),
         message,
         links: SHOWROOMS.map((s) => {
-          const path = shortPath(b.letter, p.entry, s.slug)
-          return { ...s, url: waLink(s.phone, message), path, short: SHORT_BASE + path }
+          const official = OFFICIAL_LINKS[`${b.letter}-${p.entry}-${s.slug}`] ?? null
+          return { ...s, url: waLink(s.phone, message), official }
         }),
       }
     }),

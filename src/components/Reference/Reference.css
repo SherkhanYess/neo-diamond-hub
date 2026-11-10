@@ -115,6 +115,12 @@
   user-select: all;
 }
 
+.ref__missing {
+  grid-column: 2 / -1;
+  font-size: 13px;
+  color: var(--ink-400);
+}
+
 .ref__actions {
   display: flex;
   gap: 6px;

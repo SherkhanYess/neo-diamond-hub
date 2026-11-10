@@ -12,18 +12,28 @@ async function copy(text) {
   }
 }
 
-function LinkRow({ city, short, onCopy }) {
+function LinkRow({ city, official, onCopy }) {
+  if (!official) {
+    return (
+      <div className="ref__link">
+        <span className="ref__city">{city}</span>
+        <span className="ref__missing">
+          Короткой ссылки ещё нет — создайте в WhatsApp Manager с текстом выше и пришлите в инфоцентр
+        </span>
+      </div>
+    )
+  }
   return (
     <div className="ref__link">
       <span className="ref__city">{city}</span>
-      <code className="ref__url mono" title={short}>
-        {short.replace('https://', '')}
+      <code className="ref__url mono" title={official.text}>
+        {official.url.replace('https://', '')}
       </code>
       <div className="ref__actions">
-        <button className="btn btn--primary ref__btn" onClick={() => onCopy(short, `Ссылка ${city} скопирована`)}>
+        <button className="btn btn--primary ref__btn" onClick={() => onCopy(official.url, `Ссылка ${city} скопирована`)}>
           Скопировать
         </button>
-        <a className="btn btn--ghost ref__btn" href={short} target="_blank" rel="noreferrer">
+        <a className="btn btn--ghost ref__btn" href={official.url} target="_blank" rel="noreferrer">
           Открыть
         </a>
       </div>
@@ -43,10 +53,10 @@ export default function ReferencePage() {
         <div className="eyebrow">Ссылки профиля</div>
         <h2 className="ref__h">WhatsApp из Instagram с кодом обращения</h2>
         <p className="ref__lead">
-          Ставьте в шапку профиля и в стикер-ссылку сторис. Короткая ссылка открывает WhatsApp нужного шоурума с
-          готовым текстом, и код в конце сообщения
-          инфоцентр засчитает как конвертер «Профиль». Если человек сотрёт код, обращение уйдёт в «WhatsApp без
-          источника». Ссылки на сайт делаются в админке taena, раздел «Ссылки».
+          Ставьте в шапку профиля и в стикер-ссылку сторис. Это официальные короткие ссылки WhatsApp
+          (wa.me/message/…): создаются в WhatsApp Manager → номер → «QR-коды и короткие ссылки», с текстом из
+          карточки. Код в конце сообщения инфоцентр засчитает как конвертер «Профиль»; если человек сотрёт код,
+          обращение уйдёт в «WhatsApp без источника». Ссылки на сайт делаются в админке taena, раздел «Ссылки».
         </p>
 
         <div className="ref__brands">
@@ -66,7 +76,7 @@ export default function ReferencePage() {
                     </button>
                   </p>
                   {p.links.map((l) => (
-                    <LinkRow key={l.phone} city={l.city} short={l.short} onCopy={onCopy} />
+                    <LinkRow key={l.phone} city={l.city} official={l.official} onCopy={onCopy} />
                   ))}
                 </div>
               ))}
