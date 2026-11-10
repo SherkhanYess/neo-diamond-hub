@@ -17,7 +17,8 @@ import './Marketing.css'
 const CONVERTER_COLS = [
   { key: 'entry', label: 'Вход', fmt: 'int', hint: 'Визиты профиля / клики рекламы / сессии сайта' },
   { key: 'cr_entry_lead', label: 'Вход → лид', fmt: 'pct' },
-  { key: 'leads', label: 'Лиды', fmt: 'int' },
+  { key: 'leads', label: 'Лиды', fmt: 'int', hint: 'Уникальные: первое обращение клиента' },
+  { key: 'repeats', label: 'Повторные', fmt: 'int', hint: 'Клиент уже обращался раньше — не лид, но продажа засчитывается' },
   { key: 'cr_lead_qual', label: 'Лид → квал', fmt: 'pct' },
   { key: 'quals', label: 'Квалы', fmt: 'int' },
   { key: 'held', label: 'Встречи', fmt: 'int' },
@@ -35,6 +36,7 @@ const PERF_COLS = [
   { key: 'impressions', label: 'Показы', fmt: 'int' },
   { key: 'ctr', label: 'CTR', fmt: 'pct' },
   { key: 'leads', label: 'Лиды', fmt: 'int' },
+  { key: 'repeats', label: 'Повторные', fmt: 'int' },
   { key: 'quals', label: 'Квалы', fmt: 'int' },
   { key: 'cpq', label: 'Цена квала', fmt: 'money' },
   { key: 'held', label: 'Встречи', fmt: 'int' },
@@ -166,6 +168,7 @@ export default function SourcePage() {
     { key: 'budget', label: 'Бюджет', plan: card.planM.budget, fact: card.factM.budget, fmt: 'money', lowerBetter: true, additive: true },
     { key: 'revenue', label: 'Выручка', plan: card.planM.revenue, fact: card.factM.revenue, fmt: 'money', additive: true },
     { key: 'leads', label: 'Лиды', plan: null, fact: card.fact.leads, fmt: 'int' },
+    { key: 'repeats', label: 'Повторные обращения', plan: null, fact: card.fact.repeats || 0, fmt: 'int' },
     { key: 'quals', label: 'Квал-лиды', plan: null, fact: card.fact.quals, fmt: 'int' },
     { key: 'roas', label: 'ROAS', plan: card.planM.roas, fact: card.factM.roas, fmt: 'ratio1' },
     { key: 'cpq', label: 'Стоимость квала', plan: null, fact: card.factM.cpq, fmt: 'money' },
@@ -228,7 +231,7 @@ export default function SourcePage() {
                   <td />
                   {CONVERTER_COLS.map((c) => (
                     <td key={c.key} className="rep__num mono">
-                      {['leads', 'quals', 'held', 'sales'].includes(c.key) ? fmtValue('int', funnels.orphan[c.key]) : c.key === 'revenue' ? fmtValue('money', funnels.orphan.revenue) : ''}
+                      {['leads', 'repeats', 'quals', 'held', 'sales'].includes(c.key) ? fmtValue('int', funnels.orphan[c.key]) : c.key === 'revenue' ? fmtValue('money', funnels.orphan.revenue) : ''}
                     </td>
                   ))}
                 </tr>
@@ -238,7 +241,8 @@ export default function SourcePage() {
         </div>
       )}
       <p className="v2__note">
-        Воронка: лид → квал → встреча → продажа (ширина — доля от лидов). «Вход» — визиты профиля (таплинк), клики
+        Воронка: лид → квал → встреча → продажа (ширина — доля от лидов). Лид — первое обращение клиента;
+        «Повторные» — клиент уже обращался раньше: в лиды и конверсии не входит, его продажа и выручка засчитываются. «Вход» — визиты профиля (таплинк), клики
         рекламы или сессии сайта; «н/д», если данных о входе нет.
       </p>
 
@@ -278,7 +282,7 @@ export default function SourcePage() {
                   <td className="rep__lcol">Без объявления</td>
                   {PERF_COLS.map((c) => (
                     <td key={c.key} className="rep__num mono">
-                      {['leads', 'quals', 'held', 'sales'].includes(c.key) ? fmtValue('int', perf.noAd[c.key]) : c.key === 'revenue' ? fmtValue('money', perf.noAd.revenue) : ''}
+                      {['leads', 'repeats', 'quals', 'held', 'sales'].includes(c.key) ? fmtValue('int', perf.noAd[c.key]) : c.key === 'revenue' ? fmtValue('money', perf.noAd.revenue) : ''}
                     </td>
                   ))}
                 </tr>

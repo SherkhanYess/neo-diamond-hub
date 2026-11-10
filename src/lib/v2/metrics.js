@@ -4,7 +4,7 @@
 export const UNKNOWN = '__unknown__'
 
 export function emptySums() {
-  return { budget: 0, revenue: 0, sales: 0, leads: 0, quals: 0, meetings: 0, budgetKnown: false }
+  return { budget: 0, revenue: 0, sales: 0, leads: 0, quals: 0, meetings: 0, repeats: 0, budgetKnown: false }
 }
 
 export function addSums(a, b) {
@@ -15,6 +15,7 @@ export function addSums(a, b) {
     leads: a.leads + b.leads,
     quals: a.quals + b.quals,
     meetings: a.meetings + b.meetings,
+    repeats: (a.repeats || 0) + (b.repeats || 0),
     budgetKnown: a.budgetKnown || b.budgetKnown,
   }
 }
@@ -30,6 +31,7 @@ export function derive(s) {
     leads: s.leads,
     quals: s.quals,
     meetings: s.meetings,
+    repeats: s.repeats || 0,
     avg_check: div(s.revenue, s.sales),
     roas: s.budgetKnown ? div(s.revenue, s.budget) : null,
     cac: s.budgetKnown ? div(s.budget, s.sales) : null,
@@ -57,15 +59,22 @@ export function reachedStages(events) {
   return m
 }
 
+// Уникальный лид — первое обращение клиента. Повторное обращение (тот же
+// контакт, любой конвертер) в воронку не входит: только продажа, выручка и
+// счётчик «Повторные обращения».
+export const isUnique = (deal) => deal.is_unique !== false
+
 // Fact sums of one deal. `stages` = { qual, held } stage ids.
 export function dealSums(deal, reached, stages) {
   const r = reached.get(deal.id) || new Set()
   const won = isWon(deal)
+  const uniq = isUnique(deal)
   return {
     ...emptySums(),
-    leads: 1,
-    quals: r.has(stages.qual) || deal.client_task_id ? 1 : 0,
-    meetings: r.has(stages.held) ? 1 : 0,
+    leads: uniq ? 1 : 0,
+    quals: uniq && (r.has(stages.qual) || deal.client_task_id) ? 1 : 0,
+    meetings: uniq && r.has(stages.held) ? 1 : 0,
+    repeats: uniq ? 0 : 1,
     sales: won ? 1 : 0,
     revenue: won ? Number(deal.revenue) || 0 : 0,
   }

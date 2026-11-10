@@ -35,8 +35,8 @@ export function plannedStageCounts(plans, orderedStages, explicit = {}) {
 // Funnel rows: stage counts with CV between consecutive stages, overall CV,
 // then sales and revenue.
 export function funnelRows({ deals, events, orderedStages, stagePlans = {}, ratePlans = {}, revenuePlan = null }) {
-  const series = funnelSeries(deals, events)
   const stages = coreStages(orderedStages)
+  const series = funnelSeries(deals, events, { saleStageId: stages.find((s) => s.is_sale)?.id ?? null })
   const factStage = (id) => sumMap(series.byStageDay.get(id))
   const bucketStage = (id, keys) => sumOverKeys(series.byStageDay.get(id), keys)
   const revBucket = (keys) => keys.reduce((s, k) => s + (series.salesByDay.get(k)?.revenue || 0), 0)
@@ -61,6 +61,19 @@ export function funnelRows({ deals, events, orderedStages, stagePlans = {}, rate
       daily: true,
       additive: true,
     })
+    if (i === 0) {
+      // Повторные обращения: тот же клиент пришёл снова (с любого конвертера).
+      // Не лид и не входит в конверсии; продажа по ним — в строке продаж.
+      rows.push({
+        key: 'repeats',
+        label: 'Повторные обращения',
+        fmt: 'num1',
+        plan: null,
+        fact: sumMap(series.repeatsByDay),
+        bucket: (keys) => sumOverKeys(series.repeatsByDay, keys),
+        additive: true,
+      })
+    }
     const next = stages[i + 1]
     if (next) {
       rows.push({

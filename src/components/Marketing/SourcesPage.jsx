@@ -135,6 +135,7 @@ export default function SourcesPage() {
                 <Stat label="Бюджет" plan={c.planM.budget} fact={c.factM.budget} fmt="money" lowerBetter pace={pace} />
                 <Stat label="Выручка" plan={c.planM.revenue} fact={c.factM.revenue} fmt="money" pace={pace} />
                 <Stat label="Лиды" fact={c.fact.leads} fmt="int" />
+                {c.fact.repeats > 0 && <Stat label="Повторные" fact={c.fact.repeats} fmt="int" />}
                 <Stat label="Квал-лиды" fact={c.fact.quals} fmt="int" />
                 <Stat label="ROAS" plan={c.planM.roas} fact={c.factM.roas} fmt="ratio1" />
                 <Stat label="Стоимость квала" fact={c.factM.cpq} fmt="money" />

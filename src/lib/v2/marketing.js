@@ -1,6 +1,6 @@
 // Маркетинг: demand sources → converters → ad campaigns. Pure functions over
 // the same cohort/spend/plans as Коммерция.
-import { UNKNOWN, emptySums, addSums, derive, planSums, dealSums, reachedStages, isWon } from './metrics'
+import { UNKNOWN, emptySums, addSums, derive, planSums, dealSums, reachedStages, isWon, isUnique } from './metrics'
 
 // Level 1 — one card per demand source of the brand.
 export function sourceCards({ deals, events, plans, spendBySource, spendBrands, stages, sources }) {
@@ -33,20 +33,24 @@ export function sourceCards({ deals, events, plans, spendBySource, spendBrands, 
 
 // Funnel step counts for a set of deals.
 export function funnelOf(deals, reached, stages) {
-  let leads = 0, quals = 0, set = 0, held = 0, sales = 0, revenue = 0, ignored = 0
+  let leads = 0, quals = 0, set = 0, held = 0, sales = 0, revenue = 0, ignored = 0, repeats = 0
   for (const d of deals) {
     const r = reached.get(d.id) || new Set()
-    leads++
-    if (r.has(stages.qual) || d.client_task_id) quals++
-    if (r.has(stages.set)) set++
-    if (r.has(stages.held)) held++
     if (isWon(d)) {
       sales++
       revenue += Number(d.revenue) || 0
     }
+    if (!isUnique(d)) {
+      repeats++
+      continue
+    }
+    leads++
+    if (r.has(stages.qual) || d.client_task_id) quals++
+    if (r.has(stages.set)) set++
+    if (r.has(stages.held)) held++
     if (d.is_ignored) ignored++
   }
-  return { leads, quals, set, held, sales, revenue, ignored }
+  return { leads, quals, set, held, sales, revenue, ignored, repeats }
 }
 
 const div = (a, b) => (b ? a / b : null)
@@ -121,8 +125,9 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
           sales: a.sales + k.sales,
           revenue: a.revenue + k.revenue,
           ignored: a.ignored + k.ignored,
+          repeats: a.repeats + (k.repeats || 0),
         }),
-        { spend: 0, impressions: 0, clicks: 0, leads: 0, quals: 0, set: 0, held: 0, sales: 0, revenue: 0, ignored: 0 }
+        { spend: 0, impressions: 0, clicks: 0, leads: 0, quals: 0, set: 0, held: 0, sales: 0, revenue: 0, ignored: 0, repeats: 0 }
       )
     }
     return {

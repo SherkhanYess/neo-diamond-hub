@@ -187,7 +187,7 @@ async function loadContext(db: SupabaseClient, get: ReturnType<typeof amoClient>
   }
   const stageByName = new Map(stages.map((s: any) => [s.name, s]))
   const defaultBrand = brands.find((b: any) => b.slug === 'neodiamond') ?? brands[0]
-  return { brands, branches, stages, tasks, sources, profileOfAmo, profileByName, named, stageByName, defaultBrand, adBrand, adByShort }
+  return { brands, branches, stages, tasks, sources, profileOfAmo, profileByName, named, stageByName, defaultBrand, adBrand, adByShort, get }
 }
 type Ctx = Awaited<ReturnType<typeof loadContext>>
 
@@ -376,7 +376,29 @@ async function processLeads(db: SupabaseClient, leads: Lead[], cfg: Cfg, ctx: Ct
     byLead.get(e.lead_id)!.push(e)
   }
 
-  const mapped = tracked.map((l) => mapLead(l, byLead.get(l.id) ?? [], cfg, ctx))
+  // Уникальность: сделка — первое обращение клиента, если у её основного
+  // контакта нет более ранней сделки (номера сделок растут по времени создания).
+  const mainContact = (l: Lead) => {
+    const cs = l._embedded?.contacts ?? []
+    return (cs.find((c: any) => c.is_main) ?? cs[0])?.id ?? null
+  }
+  const contactIds = [...new Set(tracked.map(mainContact).filter(Boolean))] as number[]
+  const firstLead = new Map<number, number>()
+  for (let i = 0; i < contactIds.length; i += 50) {
+    const r = await ctx.get('contacts', { 'filter[id]': contactIds.slice(i, i + 50), with: 'leads', limit: 250 })
+    for (const c of r?._embedded?.contacts ?? []) {
+      const ls = (c._embedded?.leads ?? []).map((x: any) => Number(x.id))
+      if (ls.length) firstLead.set(c.id, Math.min(...ls))
+    }
+  }
+
+  const mapped = tracked.map((l) => {
+    const m = mapLead(l, byLead.get(l.id) ?? [], cfg, ctx)
+    const contact = mainContact(l)
+    const first = contact ? firstLead.get(contact) : undefined
+    Object.assign(m.deal, { contact_id: contact, is_unique: first == null || first >= l.id })
+    return m
+  })
   const { data: saved, error } = await db
     .from('deals')
     .upsert(mapped.map((m) => m.deal), { onConflict: 'crm_id' })
@@ -400,7 +422,7 @@ async function processLeads(db: SupabaseClient, leads: Lead[], cfg: Cfg, ctx: Ct
 async function fetchLeadsByIds(get: ReturnType<typeof amoClient>, ids: number[]) {
   const out: Lead[] = []
   for (let i = 0; i < ids.length; i += 50) {
-    const r = await get('leads', { 'filter[id]': ids.slice(i, i + 50), with: 'loss_reason', limit: 250 })
+    const r = await get('leads', { 'filter[id]': ids.slice(i, i + 50), with: 'loss_reason,contacts', limit: 250 })
     out.push(...(r?._embedded?.leads ?? []))
   }
   return out
@@ -446,7 +468,7 @@ Deno.serve(async (req) => {
                 'filter[created_at][from]': from,
                 'filter[created_at][to]': to,
                 'order[id]': 'asc',
-                with: 'loss_reason',
+                with: 'loss_reason,contacts',
                 limit: 250,
                 page,
               })
@@ -480,7 +502,7 @@ Deno.serve(async (req) => {
     }
     const leads = new Map<number, Lead>()
     for (let page = 1; page < 200; page++) {
-      const r = await get('leads', { 'filter[updated_at][from]': cursor, with: 'loss_reason', limit: 250, page })
+      const r = await get('leads', { 'filter[updated_at][from]': cursor, with: 'loss_reason,contacts', limit: 250, page })
       for (const l of r?._embedded?.leads ?? []) leads.set(l.id, l)
       if (!r?._links?.next) break
     }

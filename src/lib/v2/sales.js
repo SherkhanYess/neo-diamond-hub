@@ -54,15 +54,20 @@ const div = (a, b) => (b ? a / b : null)
 // Raw counts for a set of deals (unique by id).
 export function counts(deals, reached, stages) {
   const seen = new Set()
-  const c = { leads: 0, quals: 0, set: 0, held: 0, sales: 0, revenue: 0, repeat_sales: 0, repeat_revenue: 0, responses: [] }
+  const c = { leads: 0, quals: 0, set: 0, held: 0, sales: 0, revenue: 0, repeat_sales: 0, repeat_revenue: 0, repeats: 0, responses: [] }
   for (const d of deals) {
     if (seen.has(d.id)) continue
     seen.add(d.id)
     const r = reached.get(d.id) || new Set()
-    c.leads++
-    if (r.has(stages.qual) || d.client_task_id) c.quals++
-    if (r.has(stages.set)) c.set++
-    if (r.has(stages.held)) c.held++
+    // Повторное обращение клиента — не лид: в воронку не входит, продажа считается.
+    if (d.is_unique === false) {
+      c.repeats++
+    } else {
+      c.leads++
+      if (r.has(stages.qual) || d.client_task_id) c.quals++
+      if (r.has(stages.set)) c.set++
+      if (r.has(stages.held)) c.held++
+    }
     if (isWon(d)) {
       if (d.is_repeat) {
         c.repeat_sales++
@@ -87,6 +92,7 @@ export function deriveSales(c) {
     revenue: c.revenue,
     repeat_sales: c.repeat_sales,
     repeat_revenue: c.repeat_revenue,
+    repeats: c.repeats,
     avg_check: div(c.revenue + c.repeat_revenue, c.sales + c.repeat_sales),
     cr_lead_qual: div(c.quals, c.leads),
     cr_qual_set: div(c.set, c.quals),

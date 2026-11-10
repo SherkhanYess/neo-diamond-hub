@@ -44,11 +44,21 @@ export function buckets(month, grouping) {
 }
 
 // Count stage entries per day, and sales revenue/orders per day.
-export function funnelSeries(deals, events) {
+// saleStageId: a repeat inquiry (deal.is_unique === false) counts only at the
+// sale stage — it is not a lead, but its sale is real.
+export function funnelSeries(deals, events, { saleStageId = null } = {}) {
   const dealById = new Map(deals.map((d) => [d.id, d]))
   const byStageDay = new Map() // stage_id -> (dayKey -> count)
+  const repeatsByDay = new Map() // dayKey -> repeat inquiries created that day
+  for (const d of deals) {
+    if (d.is_unique !== false || !d.created_at) continue
+    const day = dayKey(d.created_at)
+    repeatsByDay.set(day, (repeatsByDay.get(day) || 0) + 1)
+  }
   for (const e of events) {
-    if (!dealById.has(e.deal_id)) continue
+    const deal = dealById.get(e.deal_id)
+    if (!deal) continue
+    if (deal.is_unique === false && e.stage_id !== saleStageId) continue
     if (!byStageDay.has(e.stage_id)) byStageDay.set(e.stage_id, new Map())
     const day = dayKey(e.entered_at)
     const m = byStageDay.get(e.stage_id)
@@ -63,7 +73,7 @@ export function funnelSeries(deals, events) {
     cur.revenue += Number(d.revenue) || 0
     salesByDay.set(day, cur)
   }
-  return { byStageDay, salesByDay }
+  return { byStageDay, salesByDay, repeatsByDay }
 }
 
 export function sumOverKeys(map, keys) {

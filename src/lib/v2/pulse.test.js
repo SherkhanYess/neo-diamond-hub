@@ -21,7 +21,7 @@ describe('funnelRows', () => {
   const f = funnelRows({ deals, events, orderedStages: stages, stagePlans: { a: 8, s: 2 }, revenuePlan: 1000 })
   const row = (k) => f.rows.find((r) => r.key === k)
   it('stops at the sale stage and adds CV, overall, revenue, avg check', () => {
-    expect(f.rows.map((r) => r.key)).toEqual(['a', 'cv:a>q', 'q', 'cv:q>s', 's', 'cv:overall', 'revenue', 'avg_check'])
+    expect(f.rows.map((r) => r.key)).toEqual(['a', 'repeats', 'cv:a>q', 'q', 'cv:q>s', 's', 'cv:overall', 'revenue', 'avg_check'])
   })
   it('counts fact by month and by period', () => {
     expect(row('a').fact).toBe(4)
@@ -33,6 +33,26 @@ describe('funnelRows', () => {
   })
   it('has no budget rows', () => {
     expect(f.rows.some((r) => r.key === 'budget')).toBe(false)
+  })
+})
+
+describe('funnelRows — повторные обращения', () => {
+  // Сделка 5 — повторное обращение того же клиента: дошла до продажи.
+  const rep = [...deals, { id: 5, is_unique: false, created_at: '2026-11-05T10:00:00', sale_at: '2026-11-06T10:00:00', revenue: 300 }]
+  const repEv = [...events, ev(5, 'a', 5), ev(5, 'q', 5), ev(5, 's', 6)]
+  const f = funnelRows({ deals: rep, events: repEv, orderedStages: stages })
+  const row = (k) => f.rows.find((r) => r.key === k)
+  it('не входит в обращения и квалификацию', () => {
+    expect(row('a').fact).toBe(4)
+    expect(row('q').fact).toBe(2)
+  })
+  it('продажа и выручка засчитываются', () => {
+    expect(row('s').fact).toBe(2)
+    expect(row('revenue').fact).toBe(800)
+  })
+  it('видна отдельной строкой по дню обращения', () => {
+    expect(row('repeats').fact).toBe(1)
+    expect(row('repeats').bucket([key(5)])).toBe(1)
   })
 })
 
