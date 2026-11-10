@@ -147,3 +147,46 @@ export async function loadConverterEntries(month, converters, adStats, utmRules 
 export async function loadUtmRules(brandId) {
   return listRef('utm_rules', { brandId })
 }
+
+// Sales department structure: units, memberships and people.
+export async function loadSalesStructure() {
+  const [{ data: units }, { data: members }, { data: profiles }] = await Promise.all([
+    supabase.from('sales_units').select('*').eq('is_archived', false).order('sort_order'),
+    supabase.from('sales_unit_members').select('unit_id, profile_id'),
+    supabase.from('profiles').select('id, full_name, is_active'),
+  ])
+  return { units: units ?? [], members: members ?? [], profiles: profiles ?? [] }
+}
+
+// Targets of the latest approved sales-department plan for the month.
+export async function loadSalesTargets(month) {
+  const { data: plans, error } = await supabase
+    .from('plans')
+    .select('id, version')
+    .eq('month', monthBounds(month).start)
+    .eq('kind', 'sales')
+    .eq('status', 'approved')
+    .order('version', { ascending: false })
+    .limit(1)
+  if (error) throw error
+  if (!plans?.length) return { planId: null, targets: [] }
+  const { data } = await supabase.from('plan_sales_targets').select('unit_id, profile_id, metric, value').eq('plan_id', plans[0].id)
+  return { planId: plans[0].id, targets: data ?? [] }
+}
+
+// Converter-level marketing plan lines of a brand for the month.
+export async function loadMarketingPlan(month, brandId) {
+  let q = supabase
+    .from('plans')
+    .select('id, brand_id, version, lines:plan_converter_lines(converter_id, budget, leads, quals)')
+    .eq('month', monthBounds(month).start)
+    .eq('kind', 'marketing')
+    .eq('status', 'approved')
+    .order('version', { ascending: false })
+  if (brandId) q = q.eq('brand_id', brandId)
+  const { data, error } = await q
+  if (error) throw error
+  const latest = new Map()
+  for (const p of data ?? []) if (!latest.has(p.brand_id)) latest.set(p.brand_id, p)
+  return [...latest.values()].flatMap((p) => p.lines.map((l) => ({ ...l, brand_id: p.brand_id })))
+}

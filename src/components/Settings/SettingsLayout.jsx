@@ -8,6 +8,7 @@ import ChangeLog from './ChangeLog'
 import Integrations from './Integrations'
 import UtmRules from './UtmRules'
 import AdCampaigns from './AdCampaigns'
+import SalesUnits from './SalesUnits'
 import { useBrand } from '../../context/BrandContext'
 import {
   citiesConfig,
@@ -42,6 +43,10 @@ const GROUPS = [
       { key: 'campaigns', label: 'Рекламные кампании', brand: true, render: (b) => <AdCampaigns key={b} /> },
       { key: 'spend', label: 'Расходы', brand: true, render: (b) => <CrudSection key={b} config={spendConfig} /> },
     ],
+  },
+  {
+    title: 'Отдел продаж',
+    items: [{ key: 'sales_units', label: 'Подотделы продаж', render: () => <SalesUnits /> }],
   },
   {
     title: 'Общее',

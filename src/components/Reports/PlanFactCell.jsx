@@ -1,6 +1,12 @@
-import { money, num1, ratio1 } from '../../lib/format'
+import { money, num1, ratio1, pct1 } from '../../lib/format'
 
-const FMT = { money, num1, ratio1 }
+const FMT = {
+  money,
+  num1,
+  ratio1,
+  int: (v) => Math.round(v).toLocaleString('ru-RU'),
+  pct: (v) => pct1(v * 100),
+}
 
 // Classify fact vs plan into below / ok / above, honouring metric direction.
 function classify(plan, fact, lowerBetter, thresholds) {

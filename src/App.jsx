@@ -10,7 +10,9 @@ import DashboardPage from './components/Dashboard/DashboardPage'
 import PlanningPage from './components/Planning/PlanningPage'
 import SourcesPage from './components/Marketing/SourcesPage'
 import SourcePage from './components/Marketing/SourcePage'
-import SalesPage from './components/Reports/SalesPage'
+import SalesDeptPage from './components/Sales/SalesDeptPage'
+import UnitPage from './components/Sales/UnitPage'
+import { SALES_CAPS } from './lib/permissions'
 import DecisionsPage from './components/Decisions/DecisionsPage'
 import CommercePage from './components/Commerce/CommercePage'
 
@@ -73,8 +75,16 @@ export default function App() {
               <Route
                 path="/sales"
                 element={
-                  <ProtectedRoute requireCap="view_reports">
-                    <SalesPage />
+                  <ProtectedRoute requireCap={SALES_CAPS}>
+                    <SalesDeptPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sales/unit/:unitId"
+                element={
+                  <ProtectedRoute requireCap={SALES_CAPS}>
+                    <UnitPage />
                   </ProtectedRoute>
                 }
               />

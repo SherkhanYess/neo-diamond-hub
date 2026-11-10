@@ -16,14 +16,16 @@ function colorClass(plan, fact) {
   return ''
 }
 
-export default function SalesRnP({ cohort, plan, orderedStages, filters, thresholds }) {
+// stagePlans ({ [stageId]: monthly count }) / revenuePlan override the plan
+// derived from the commerce plan — the sales department passes its own targets.
+export default function SalesRnP({ cohort, plan, orderedStages, filters, thresholds, stagePlans = null, revenuePlan = null }) {
   const [grouping, setGrouping] = useState('week')
   const [hiddenRows, setHiddenRows] = useState([])
   const [pickOpen, setPickOpen] = useState(false)
 
   const cols = useMemo(() => buckets(filters.month, grouping), [filters.month, grouping])
   const series = useMemo(() => funnelSeries(cohort.deals, cohort.events), [cohort])
-  const planCounts = useMemo(() => plannedFunnel(plan, orderedStages), [plan, orderedStages])
+  const planCounts = useMemo(() => stagePlans || plannedFunnel(plan, orderedStages), [stagePlans, plan, orderedStages])
   const days = monthDays(filters.month).length
 
   const saleStage = orderedStages.find((s) => s.is_sale)
@@ -73,7 +75,7 @@ export default function SalesRnP({ cohort, plan, orderedStages, filters, thresho
       }
     }
     if (r.kind === 'revenue') {
-      const p = plan?.computed?.grandTotal?.revenue ?? null
+      const p = revenuePlan ?? plan?.computed?.grandTotal?.revenue ?? null
       const f = revMonth
       return {
         plan: p == null ? '—' : money(p),
