@@ -3,10 +3,8 @@
 // Код в конце сообщения распознаёт вебхук amocrm-hook (_shared/inquiry.js):
 // [N·ib] — Neo Diamond, шапка профиля; [T·is] — taena, сторис и т. д.
 
-export const SHOWROOMS = [
-  { city: 'Алматы', phone: '77766708505', slug: 'a' },
-  { city: 'Астана', phone: '77776908505', slug: 's' },
-]
+// Из профиля все пишут в единый лид-центр (номер Алматы) — и Алматы, и Астана.
+export const SHOWROOMS = [{ city: 'Лид-центр', phone: '77766708505', slug: 'a' }]
 
 // Instagram не принимает длинную ссылку wa.me с текстом, поэтому в bio и
 // сторис ставятся официальные короткие ссылки WhatsApp (wa.me/message/…).

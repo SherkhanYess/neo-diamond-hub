@@ -70,8 +70,11 @@ export default function ReferencePage() {
                     <span className="ref__code mono">{p.code}</span>
                   </div>
                   <p className="ref__msg">
-                    «{p.message}»
-                    <button className="ref__copytext" onClick={() => onCopy(p.message, 'Текст скопирован')}>
+                    «{p.links[0]?.official?.text ?? p.message}»
+                    <button
+                      className="ref__copytext"
+                      onClick={() => onCopy(p.links[0]?.official?.text ?? p.message, 'Текст скопирован')}
+                    >
                       скопировать текст
                     </button>
                   </p>

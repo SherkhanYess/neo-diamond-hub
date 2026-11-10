@@ -5,9 +5,9 @@ import { parseInquiry } from '../../../supabase/functions/_shared/inquiry.js'
 describe('profileLinks', () => {
   const all = profileLinks()
 
-  it('2 бренда × 2 размещения × 2 шоурума', () => {
+  it('2 бренда × 2 размещения × единый лид-центр', () => {
     expect(all).toHaveLength(2)
-    expect(all.flatMap((b) => b.placements.flatMap((p) => p.links))).toHaveLength(8)
+    expect(all.flatMap((b) => b.placements.flatMap((p) => p.links))).toHaveLength(4)
   })
 
   it('каждый текст несёт код, который понимает вебхук', () => {
