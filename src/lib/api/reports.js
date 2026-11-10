@@ -31,24 +31,3 @@ export async function loadCohort(branchId, month, brandId = null) {
   })
   return { deals, events }
 }
-
-// Latest approved commerce plan snapshot for a branch+month (+brand), or null.
-export async function loadApprovedPlan(branchId, month, brandId = null) {
-  let q = supabase
-    .from('plans')
-    .select('id, version, computed, sales_avg_check, brand_id')
-    .eq('branch_id', branchId)
-    .eq('month', month)
-    .eq('kind', 'commerce')
-    .eq('status', 'approved')
-    .order('version', { ascending: false })
-    .limit(1)
-  if (brandId) q = q.eq('brand_id', brandId)
-  const { data, error } = await q
-  if (error) throw error
-  const plan = data?.[0]
-  if (!plan) return null
-  // Sales conversions of that plan version (planned funnel).
-  const { data: conv } = await supabase.from('plan_sales_conversions').select('*').eq('plan_id', plan.id)
-  return { ...plan, conversions: conv || [] }
-}

@@ -1,4 +1,4 @@
-import { currentMonth } from '../Reports/FilterBar'
+import { currentMonth } from '../../lib/month'
 import '../v2/v2.css'
 
 export { currentMonth }

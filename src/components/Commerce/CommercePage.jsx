@@ -5,7 +5,8 @@ import { commerceLeaves, buildTree, totals, UNALLOCATED } from '../../lib/v2/com
 import { UNKNOWN, monthPace } from '../../lib/v2/metrics'
 import PlanFactTree from '../v2/PlanFactTree'
 import KpiCards from '../v2/KpiCards'
-import { currentMonth } from '../Reports/FilterBar'
+import MultiSelect from '../Reports/MultiSelect'
+import { currentMonth } from '../../lib/month'
 import '../v2/v2.css'
 
 export const COMMERCE_METRICS = [
@@ -36,6 +37,8 @@ export default function CommercePage() {
   const [month, setMonth] = useState(currentMonth())
   const [branchId, setBranchId] = useState('')
   const [mode, setModeState] = useState(readMode())
+  const [taskSel, setTaskSel] = useState([])
+  const [sourceSel, setSourceSel] = useState([])
   const navigate = useNavigate()
   const d = useV2Data({ month, branchId: branchId || null })
 
@@ -48,7 +51,7 @@ export default function CommercePage() {
     }
   }
 
-  const leaves = useMemo(
+  const allLeaves = useMemo(
     () =>
       commerceLeaves({
         deals: d.deals,
@@ -59,6 +62,14 @@ export default function CommercePage() {
         stages: d.stages,
       }),
     [d.deals, d.events, d.plans, d.spend, d.spendBrands, d.stages]
+  )
+  // Multi-select slices over the same leaves (totals follow the selection).
+  const leaves = useMemo(
+    () =>
+      allLeaves.filter(
+        (l) => (!taskSel.length || taskSel.includes(l.task_id)) && (!sourceSel.length || sourceSel.includes(l.source_id))
+      ),
+    [allLeaves, taskSel, sourceSel]
   )
 
   const levels = useMemo(() => {
@@ -110,6 +121,14 @@ export default function CommercePage() {
             ))}
           </select>
         </label>
+        <div className="v2__ctrl">
+          <span>Клиентские задачи</span>
+          <MultiSelect options={d.dict.tasks.filter((x) => !x.is_archived)} value={taskSel} onChange={setTaskSel} />
+        </div>
+        <div className="v2__ctrl">
+          <span>Источники спроса</span>
+          <MultiSelect options={d.dict.sources.filter((x) => !x.is_archived)} value={sourceSel} onChange={setSourceSel} />
+        </div>
         <div className="mx__group-toggle" style={{ marginLeft: 'auto' }}>
           {MODES.map((m) => (
             <button key={m.key} className={mode === m.key ? 'is-active' : ''} onClick={() => setMode(m.key)}>

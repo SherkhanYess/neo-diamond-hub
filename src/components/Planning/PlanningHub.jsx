@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSession } from '../../context/SessionContext'
 import { can } from '../../lib/permissions'
-import { currentMonth } from '../Reports/FilterBar'
+import { currentMonth } from '../../lib/month'
 import PlanningPage from './PlanningPage'
 import MarketingPlan from './MarketingPlan'
 import SalesPlan from './SalesPlan'
