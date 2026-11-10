@@ -13,6 +13,10 @@ export const SHOWROOMS = [
 // Их создают в WhatsApp Manager → номер → «QR-коды и короткие ссылки»,
 // текст — с кодом. Созданные ссылки записываются сюда: ключ бренд-вход-город.
 export const OFFICIAL_LINKS = {
+  'N-ib-a': {
+    url: 'https://wa.me/message/QPTCPWFIIOSSJ1',
+    text: 'Здравствуйте, хочу получить каталог и обсудить украшение! Код обращения - [N·ib]',
+  },
   'T-ib-a': {
     url: 'https://wa.me/message/LRSSKRO3FST6C1',
     text: 'Здравствуйте! Хочу узнать про кольца и записаться на живой показ. [T·ib]',
