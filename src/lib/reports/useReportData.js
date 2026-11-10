@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { listRef } from '../api/references'
 import { loadCohort, loadApprovedPlan } from '../api/reports'
+import { useBrand } from '../../context/BrandContext'
 
 // Loads reference lists once, and cohort+plan whenever branch/month change.
 export function useReportData(filters) {
+  const { brandFilter } = useBrand()
   const [refs, setRefs] = useState({ branches: [], clientTasks: [], demandSources: [], leadSources: [], stages: [] })
   const [cohort, setCohort] = useState({ deals: [], events: [] })
   const [plan, setPlan] = useState(null)
@@ -12,29 +14,29 @@ export function useReportData(filters) {
   useEffect(() => {
     Promise.all([
       listRef('branches'),
-      listRef('client_tasks'),
-      listRef('demand_sources'),
+      listRef('client_tasks', { brandId: brandFilter }),
+      listRef('demand_sources', { brandId: brandFilter }),
       listRef('lead_sources'),
       listRef('funnel_stages'),
     ]).then(([branches, clientTasks, demandSources, leadSources, stages]) =>
       setRefs({ branches, clientTasks, demandSources, leadSources, stages })
     )
-  }, [])
+  }, [brandFilter])
 
   const reload = useCallback(async () => {
     if (!filters.branch_id || !filters.month) return
     setLoading(true)
     try {
       const [c, p] = await Promise.all([
-        loadCohort(filters.branch_id, filters.month),
-        loadApprovedPlan(filters.branch_id, filters.month),
+        loadCohort(filters.branch_id, filters.month, brandFilter),
+        loadApprovedPlan(filters.branch_id, filters.month, brandFilter),
       ])
       setCohort(c)
       setPlan(p)
     } finally {
       setLoading(false)
     }
-  }, [filters.branch_id, filters.month])
+  }, [filters.branch_id, filters.month, brandFilter])
 
   useEffect(() => {
     reload()

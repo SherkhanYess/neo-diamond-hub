@@ -4,12 +4,14 @@ import { computeMarketing } from '../planning/calc'
 
 // A "plan bundle" = the plans row plus its input lines and conversions.
 
-export async function loadLatestPlan(branchId, month) {
+export async function loadLatestPlan(branchId, month, brandId) {
   const { data: plans, error } = await supabase
     .from('plans')
     .select('*')
     .eq('branch_id', branchId)
     .eq('month', month)
+    .eq('kind', 'commerce')
+    .eq('brand_id', brandId)
     .order('version', { ascending: false })
   if (error) throw error
   if (!plans || plans.length === 0) return null
@@ -28,17 +30,17 @@ async function loadPlanBundle(plan) {
   return { plan, taskLines: taskLines || [], sourceLines: sourceLines || [], conversions: conversions || [] }
 }
 
-export async function createDraft(branchId, month, actorId, { version = 1, seed = null } = {}) {
+export async function createDraft(branchId, month, actorId, { version = 1, seed = null, brandId } = {}) {
   const { data: plan, error } = await supabase
     .from('plans')
-    .insert({ branch_id: branchId, month, version, status: 'draft', created_by: actorId })
+    .insert({ branch_id: branchId, month, version, status: 'draft', created_by: actorId, kind: 'commerce', brand_id: brandId })
     .select()
     .single()
   if (error) throw error
   if (seed) {
     await seedLines(plan.id, seed)
   }
-  await logChange(actorId, 'plans', plan.id, 'create', { month, branch_id: branchId, version })
+  await logChange(actorId, 'plans', plan.id, 'create', { month, branch_id: branchId, brand_id: brandId, version })
   return loadPlanBundle(plan)
 }
 
@@ -128,17 +130,20 @@ export async function approvePlan(bundle, tasksForCalc, actorId, reason = null) 
 }
 
 // "Change plan" — clone the approved plan's inputs into a new draft version.
-export async function createNewVersion(branchId, month, actorId) {
+export async function createNewVersion(branchId, month, actorId, brandId) {
   const { data: plans } = await supabase
     .from('plans')
     .select('*')
     .eq('branch_id', branchId)
     .eq('month', month)
+    .eq('kind', 'commerce')
+    .eq('brand_id', brandId)
     .order('version', { ascending: false })
   const latest = plans?.[0]
   if (!latest) throw new Error('Нет утверждённого плана для новой версии')
   const bundle = await loadPlanBundle(latest)
   return createDraft(branchId, month, actorId, {
+    brandId,
     version: latest.version + 1,
     seed: {
       taskLines: bundle.taskLines,
@@ -149,7 +154,7 @@ export async function createNewVersion(branchId, month, actorId) {
 }
 
 // Copy last month's approved plan into a fresh draft for this month.
-export async function copyPreviousMonth(branchId, month, actorId) {
+export async function copyPreviousMonth(branchId, month, actorId, brandId) {
   const prev = new Date(month)
   prev.setMonth(prev.getMonth() - 1)
   const prevMonth = prev.toISOString().slice(0, 10)
@@ -158,11 +163,14 @@ export async function copyPreviousMonth(branchId, month, actorId) {
     .select('*')
     .eq('branch_id', branchId)
     .eq('month', prevMonth)
+    .eq('kind', 'commerce')
+    .eq('brand_id', brandId)
     .eq('status', 'approved')
     .order('version', { ascending: false })
   if (!plans?.length) throw new Error('За прошлый месяц нет утверждённого плана')
   const bundle = await loadPlanBundle(plans[0])
   return createDraft(branchId, month, actorId, {
+    brandId,
     version: 1,
     seed: { taskLines: bundle.taskLines, sourceLines: bundle.sourceLines, conversions: bundle.conversions },
   })

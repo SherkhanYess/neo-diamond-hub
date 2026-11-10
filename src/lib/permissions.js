@@ -8,6 +8,7 @@ export const CAPS = [
   { key: 'approve_plan', label: 'Утверждать план' },
   { key: 'decisions', label: 'Журнал решений' },
   { key: 'settings', label: 'Настройки' },
+  { key: 'all_brands', label: 'Все бренды' },
 ]
 
 export const CAP_KEYS = CAPS.map((c) => c.key)

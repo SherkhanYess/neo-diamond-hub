@@ -1,17 +1,36 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import DataTable from '../common/DataTable'
 import ConfirmDialog from '../common/ConfirmDialog'
 import { useToast } from '../common/Toast'
 import { useSession } from '../../context/SessionContext'
+import { useBrand } from '../../context/BrandContext'
 import { supabase } from '../../lib/supabaseClient'
-import { listRef, createRef, updateRef, archiveRef, unarchiveRef, deleteRef, isReferenceInUse } from '../../lib/api/references'
+import {
+  listRef,
+  createRef,
+  updateRef,
+  archiveRef,
+  unarchiveRef,
+  deleteRef,
+  isReferenceInUse,
+  BRAND_SCOPED,
+} from '../../lib/api/references'
 import { validateUniqueName } from '../../lib/referenceRules'
 import './CrudSection.css'
 
+// Config-driven dictionary editor.
+// config: { table, title, singular, columns, fields, select?, uniqueName?, nameRequired?, rowLabel? }
+// field:  { key, label, type: 'text'|'number'|'date'|'select', options?, optionsFrom?,
+//           optionsSelect?, optionLabel?(row), optional?, hint? }
 export default function CrudSection({ config }) {
   const { profile } = useSession()
+  const { brandFilter, isAll, brands, brandName } = useBrand()
   const actorId = profile?.id
   const toast = useToast()
+  const brandScoped = BRAND_SCOPED.has(config.table)
+  const uniqueName = config.uniqueName !== false
+  const nameRequired = config.nameRequired !== false
+  const rowLabel = config.rowLabel || ((r) => r.name || '—')
 
   const [rows, setRows] = useState([])
   const [options, setOptions] = useState({})
@@ -26,33 +45,51 @@ export default function CrudSection({ config }) {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await listRef(config.table, { includeArchived: true, select: config.select || '*' })
+      const data = await listRef(config.table, {
+        includeArchived: true,
+        select: config.select || '*',
+        brandId: brandScoped ? brandFilter : null,
+      })
       setRows(data)
     } finally {
       setLoading(false)
     }
-  }, [config.table, config.select])
+  }, [config.table, config.select, brandScoped, brandFilter])
 
   useEffect(() => {
     load()
   }, [load])
 
-  // Load option lists for select fields.
+  // Option lists for select fields (brand-filtered for brand-owned tables).
   useEffect(() => {
-    const need = config.fields.filter((f) => f.optionsFrom).map((f) => f.optionsFrom)
-    const unique = [...new Set(need)]
-    if (unique.length === 0) return
+    const fromFields = config.fields.filter((f) => f.optionsFrom)
+    if (fromFields.length === 0) return
     Promise.all(
-      unique.map(async (table) => {
-        if (table === 'profiles') {
+      fromFields.map(async (f) => {
+        if (f.optionsFrom === 'profiles') {
           const { data } = await supabase.from('profiles').select('id, full_name').eq('is_active', true)
-          return [table, (data ?? []).map((r) => ({ value: r.id, label: r.full_name || '—' }))]
+          return [f.key, (data ?? []).map((r) => ({ value: r.id, label: r.full_name || '—', brand_id: null }))]
         }
-        const data = await listRef(table)
-        return [table, data.map((r) => ({ value: r.id, label: r.name }))]
+        const data = await listRef(f.optionsFrom, {
+          select: f.optionsSelect || '*',
+          brandId: BRAND_SCOPED.has(f.optionsFrom) ? brandFilter : null,
+        })
+        const label = f.optionLabel || ((r) => r.name)
+        return [f.key, data.map((r) => ({ value: r.id, label: label(r), brand_id: r.brand_id ?? null }))]
       })
     ).then((pairs) => setOptions(Object.fromEntries(pairs)))
-  }, [config.fields])
+  }, [config.fields, brandFilter])
+
+  const fields = useMemo(() => {
+    // In «Все бренды» a new brand-owned row needs its brand chosen explicitly.
+    if (brandScoped && isAll) {
+      return [
+        { key: 'brand_id', label: 'Бренд', type: 'select', brandSelect: true },
+        ...config.fields,
+      ]
+    }
+    return config.fields
+  }, [brandScoped, isAll, config.fields])
 
   const openNew = () => {
     setForm({})
@@ -67,23 +104,45 @@ export default function CrudSection({ config }) {
   const closeForm = () => setEditing(null)
 
   const save = async () => {
-    const nameCheck = validateUniqueName(rows, form.name, editing?.id ?? null)
-    if (!nameCheck.valid) {
-      setError(nameCheck.error)
+    const rowBrand = brandScoped ? form.brand_id || brandFilter : null
+    if (brandScoped && !rowBrand) {
+      setError('Выберите бренд.')
       return
+    }
+    if (nameRequired || uniqueName) {
+      const siblings = brandScoped ? rows.filter((r) => r.brand_id === rowBrand) : rows
+      if (uniqueName) {
+        const nameCheck = validateUniqueName(siblings, form.name, editing?.id ?? null)
+        if (!nameCheck.valid) {
+          setError(nameCheck.error)
+          return
+        }
+      } else if (!(form.name || '').trim()) {
+        setError('Название не может быть пустым.')
+        return
+      }
+    }
+    for (const f of config.fields) {
+      if (f.required && (form[f.key] === '' || form[f.key] == null)) {
+        setError(`Заполните поле «${f.label}».`)
+        return
+      }
     }
     const payload = {}
     for (const f of config.fields) {
       let v = form[f.key]
-      const isFk = !!f.optionsFrom // select referencing another table (uuid column)
+      const isFk = !!f.optionsFrom
       const isNum = f.type === 'number'
+      const isDate = f.type === 'date'
       if (v === '' || v === undefined) {
-        // Empty FK/number → null (avoids '' in uuid/number columns); plain
-        // text/enum columns keep '' (some are NOT NULL with a '' default).
-        v = isFk || isNum || f.optional ? null : ''
+        // Empty → the field default, else null for FK/number/date; NOT NULL text keeps ''.
+        v = f.default !== undefined ? f.default : isFk || isNum || isDate || f.optional ? null : ''
+      } else if (isNum) {
+        v = Number(v)
       }
       payload[f.key] = v
     }
+    if (brandScoped) payload.brand_id = rowBrand
     try {
       if (editing.id) {
         await updateRef(config.table, editing.id, payload, actorId)
@@ -102,7 +161,7 @@ export default function CrudSection({ config }) {
     await archiveRef(config.table, row.id, actorId)
     await load()
     toast.show({
-      message: `«${row.name}» в архиве.`,
+      message: `«${rowLabel(row)}» в архиве.`,
       actionLabel: 'Отменить',
       onAction: async () => {
         await unarchiveRef(config.table, row.id, actorId)
@@ -115,7 +174,7 @@ export default function CrudSection({ config }) {
     try {
       await deleteRef(config.table, row.id, actorId)
       await load()
-      toast.show({ message: `«${row.name}» удалён.` })
+      toast.show({ message: `«${rowLabel(row)}» удалён.` })
     } catch {
       // A reference appeared between the check and the delete (FK violation):
       // fall back to archiving so the action never silently fails.
@@ -132,7 +191,7 @@ export default function CrudSection({ config }) {
     }
     if (!inUse) {
       setConfirm({
-        title: `Удалить «${row.name}»?`,
+        title: `Удалить «${rowLabel(row)}»?`,
         message: 'Элемент не используется, его можно удалить безвозвратно.',
         confirmLabel: 'Удалить',
         danger: true,
@@ -143,8 +202,9 @@ export default function CrudSection({ config }) {
       })
     } else {
       setConfirm({
-        title: `Архивировать «${row.name}»?`,
-        message: 'Элемент уже используется (в сделках, планах или расходах), поэтому его нельзя удалить — только архивировать. Он останется в отчётах прошлых периодов.',
+        title: `Архивировать «${rowLabel(row)}»?`,
+        message:
+          'Элемент уже используется (в сделках, планах или расходах), поэтому его нельзя удалить — только архивировать. Он останется в отчётах прошлых периодов.',
         confirmLabel: 'В архив',
         onConfirm: async () => {
           setConfirm(null)
@@ -154,14 +214,27 @@ export default function CrudSection({ config }) {
     }
   }
 
-  const visible = rows
+  const visible = (config.sortRows ? config.sortRows([...rows]) : rows)
     .filter((r) => showArchived || !r.is_archived)
-    .filter((r) => (r.name || '').toLowerCase().includes(search.toLowerCase()))
+    .filter((r) => rowLabel(r).toLowerCase().includes(search.toLowerCase()))
 
-  const columns = config.columns.map((c) => ({ ...c }))
+  const columns = [
+    ...(brandScoped && isAll ? [{ key: 'brand_id', label: 'Бренд', render: (r) => brandName(r.brand_id) }] : []),
+    ...config.columns,
+  ]
+
+  const optionsFor = (f) => {
+    if (f.brandSelect) return brands.map((b) => ({ value: b.id, label: b.name }))
+    if (f.options) return f.options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o))
+    const list = options[f.key] || []
+    // When the row's brand is known, offer only that brand's items.
+    const rowBrand = form.brand_id || brandFilter
+    return rowBrand ? list.filter((o) => !o.brand_id || o.brand_id === rowBrand) : list
+  }
 
   return (
     <div className="crud">
+      {config.intro && <p className="crud__intro">{config.intro}</p>}
       <div className="crud__toolbar">
         <input
           className="input crud__search"
@@ -213,21 +286,21 @@ export default function CrudSection({ config }) {
       {editing && (
         <div className="confirm__backdrop" onClick={closeForm}>
           <div className="confirm" onClick={(e) => e.stopPropagation()}>
-            <h3 className="confirm__title">{editing.id ? 'Изменить' : 'Добавить'}: {config.singular}</h3>
-            {config.fields.map((f) => (
+            <h3 className="confirm__title">
+              {editing.id ? 'Изменить' : 'Добавить'}: {config.singular}
+            </h3>
+            {fields.map((f) => (
               <div className="field" key={f.key}>
                 <label>{f.label}</label>
                 {f.type === 'select' ? (
                   <select
                     className="select"
                     value={form[f.key] ?? ''}
+                    disabled={f.brandSelect && !!editing.id}
                     onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
                   >
                     <option value="">— не выбрано —</option>
-                    {(f.options
-                      ? f.options.map((o) => ({ value: o, label: o }))
-                      : options[f.optionsFrom] || []
-                    ).map((o) => (
+                    {optionsFor(f).map((o) => (
                       <option key={o.value} value={o.value}>
                         {o.label}
                       </option>
@@ -236,11 +309,13 @@ export default function CrudSection({ config }) {
                 ) : (
                   <input
                     className="input"
-                    type={f.type === 'number' ? 'number' : 'text'}
+                    type={f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}
                     value={form[f.key] ?? ''}
+                    placeholder={f.placeholder || ''}
                     onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
                   />
                 )}
+                {f.hint && <span className="crud__hint">{f.hint}</span>}
               </div>
             ))}
             {error && <p className="form-error">{error}</p>}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useSession } from '../../context/SessionContext'
+import { useBrand } from '../../context/BrandContext'
 import { useToast } from '../common/Toast'
 import ConfirmDialog from '../common/ConfirmDialog'
 import EmptyState from '../common/EmptyState'
@@ -28,6 +29,7 @@ function currentMonth() {
 
 export default function PlanningPage() {
   const { profile, caps } = useSession()
+  const { brandFilter, currentBrand } = useBrand()
   const actorId = profile?.id
   const toast = useToast()
   const canApprove = caps.includes('approve_plan')
@@ -58,9 +60,9 @@ export default function PlanningPage() {
   const [confirmApprove, setConfirmApprove] = useState(false)
   const [reason, setReason] = useState('')
 
-  // Load reference data once.
+  // Reference data for the selected brand.
   useEffect(() => {
-    Promise.all([listRef('branches'), listRef('client_tasks'), listRef('demand_sources'), listRef('funnel_stages')]).then(
+    Promise.all([listRef('branches'), listRef('client_tasks', { brandId: brandFilter }), listRef('demand_sources', { brandId: brandFilter }), listRef('funnel_stages')]).then(
       ([b, t, s, f]) => {
         setBranches(b)
         setClientTasks(t)
@@ -69,7 +71,7 @@ export default function PlanningPage() {
         if (b.length && !branchId) setBranchId(b[0].id)
       }
     )
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [brandFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const rebuild = useCallback(
     (b) => {
@@ -82,16 +84,20 @@ export default function PlanningPage() {
   )
 
   const reload = useCallback(async () => {
-    if (!branchId || !clientTasks.length) return
+    if (!branchId || !brandFilter || !clientTasks.length) {
+      setBundle(null)
+      setLoading(false)
+      return
+    }
     setLoading(true)
     try {
-      const b = await loadLatestPlan(branchId, month)
+      const b = await loadLatestPlan(branchId, month, brandFilter)
       setBundle(b)
       rebuild(b)
     } finally {
       setLoading(false)
     }
-  }, [branchId, month, clientTasks.length, rebuild])
+  }, [branchId, month, brandFilter, clientTasks, rebuild])
 
   useEffect(() => {
     reload()
@@ -144,7 +150,7 @@ export default function PlanningPage() {
   const startDraft = async () => {
     setLoading(true)
     try {
-      const b = await createDraft(branchId, month, actorId)
+      const b = await createDraft(branchId, month, actorId, { brandId: brandFilter })
       setBundle(b)
       rebuild(b)
       toast.show({ message: 'Черновик создан.' })
@@ -156,7 +162,7 @@ export default function PlanningPage() {
   const copyPrev = async () => {
     setLoading(true)
     try {
-      const b = await copyPreviousMonth(branchId, month, actorId)
+      const b = await copyPreviousMonth(branchId, month, actorId, brandFilter)
       setBundle(b)
       rebuild(b)
       toast.show({ message: 'План прошлого месяца скопирован в черновик.' })
@@ -189,7 +195,7 @@ export default function PlanningPage() {
   const changePlan = async () => {
     setLoading(true)
     try {
-      const b = await createNewVersion(branchId, month, actorId)
+      const b = await createNewVersion(branchId, month, actorId, brandFilter)
       setBundle(b)
       rebuild(b)
       toast.show({ message: `Создана версия ${b.plan.version}. Внесите правки и утвердите.` })
@@ -226,9 +232,16 @@ export default function PlanningPage() {
 
       {loading && <p style={{ color: 'var(--ink-400)' }}>Загрузка…</p>}
 
-      {!loading && !bundle && (
+      {!loading && !brandFilter && (
         <EmptyState
-          title="План на этот месяц не заведён"
+          title="Выберите бренд"
+          description="План коммерции ставится по бренду. Переключите бренд в шапке — «Все бренды» показывают только сводку."
+        />
+      )}
+
+      {!loading && brandFilter && !bundle && (
+        <EmptyState
+          title={`План ${currentBrand?.name ?? ''} на этот месяц не заведён`}
           description="Создайте новый план или скопируйте прошлый месяц."
           action={
             canEdit ? (

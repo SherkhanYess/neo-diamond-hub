@@ -29,19 +29,15 @@ function reachedByDeal(deals, events) {
 
 // Funnel counts per stage over the deal cohort.
 // stagesOrdered: [{id, sort_order, is_qualification, is_sale}] ascending.
-// opts.taskFilter / opts.sourceFilter mark whether an attribute filter is active,
-// which triggers the "н/д" rule for early stages.
+// opts.taskFilter marks an active client-task filter: the task is set at
+// qualification, so earlier stages are "н/д". The demand source is known from
+// «Обращение» (UTM, v2), so a source filter no longer hides any stage.
 export function funnelCounts(deals, events, stagesOrdered, opts = {}) {
   const reached = reachedByDeal(deals, events)
   const qualOrder = stagesOrdered.find((s) => s.is_qualification)?.sort_order ?? -Infinity
-  // "Встреча состоялась" is the stage right where demand source becomes known.
-  const meetHeldOrder = opts.meetHeldOrder ?? Infinity
 
   return stagesOrdered.map((stage) => {
     if (opts.taskFilter && stage.sort_order < qualOrder) {
-      return { stage_id: stage.id, count: NA }
-    }
-    if (opts.sourceFilter && stage.sort_order < meetHeldOrder) {
       return { stage_id: stage.id, count: NA }
     }
     let count = 0

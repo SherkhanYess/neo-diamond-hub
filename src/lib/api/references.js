@@ -3,9 +3,20 @@ import { logChange } from './audit'
 
 // Generic CRUD over the dictionary tables. `table` is the Postgres table name.
 
-export async function listRef(table, { includeArchived = false, select = '*' } = {}) {
+// Tables that belong to a brand (filtered by the brand switcher).
+export const BRAND_SCOPED = new Set([
+  'client_tasks',
+  'demand_sources',
+  'converters',
+  'utm_rules',
+  'ad_entities',
+  'spend_entries',
+])
+
+export async function listRef(table, { includeArchived = false, select = '*', brandId = null } = {}) {
   let query = supabase.from(table).select(select).order('sort_order', { ascending: true }).order('created_at', { ascending: true })
   if (!includeArchived) query = query.eq('is_archived', false)
+  if (brandId && BRAND_SCOPED.has(table)) query = query.eq('brand_id', brandId)
   const { data, error } = await query
   if (error) throw error
   return data ?? []
@@ -56,6 +67,21 @@ const DEPENDENCIES = {
   demand_sources: [
     ['deals', 'demand_source_id'],
     ['plan_source_lines', 'demand_source_id'],
+    ['converters', 'demand_source_id'],
+    ['spend_entries', 'demand_source_id'],
+    ['ad_entities', 'demand_source_id'],
+  ],
+  converters: [
+    ['deals', 'converter_id'],
+    ['utm_rules', 'converter_id'],
+    ['ad_entities', 'converter_id'],
+    ['spend_entries', 'converter_id'],
+  ],
+  brands: [
+    ['deals', 'brand_id'],
+    ['plans', 'brand_id'],
+    ['client_tasks', 'brand_id'],
+    ['demand_sources', 'brand_id'],
   ],
   lead_sources: [['deals', 'lead_source_id']],
   cities: [['branches', 'city_id']],

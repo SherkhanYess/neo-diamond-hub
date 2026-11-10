@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient'
+import { fetchAll } from './paging'
 
 function monthRange(month) {
   const start = new Date(month)
@@ -7,36 +8,43 @@ function monthRange(month) {
   return { start: start.toISOString(), end: end.toISOString() }
 }
 
-// Deals whose обращение (created_at) falls in the month, for a branch.
-export async function loadCohort(branchId, month) {
+// Deals whose обращение (created_at) falls in the month, for a branch and brand.
+// brandId null = every brand; branchId null = every branch. Stage events are
+// embedded so no long id lists travel in the URL; results are paged.
+export async function loadCohort(branchId, month, brandId = null) {
   const { start, end } = monthRange(month)
-  const { data: deals, error } = await supabase
-    .from('deals')
-    .select('*')
-    .eq('branch_id', branchId)
-    .gte('created_at', start)
-    .lt('created_at', end)
-  if (error) throw error
-  const ids = (deals || []).map((d) => d.id)
-  let events = []
-  if (ids.length) {
-    const { data: ev, error: e2 } = await supabase.from('deal_stage_events').select('*').in('deal_id', ids)
-    if (e2) throw e2
-    events = ev || []
-  }
-  return { deals: deals || [], events }
+  const rows = await fetchAll(() => {
+    let q = supabase
+      .from('deals')
+      .select('*, events:deal_stage_events(id, deal_id, stage_id, entered_at)')
+      .gte('created_at', start)
+      .lt('created_at', end)
+      .order('created_at', { ascending: true })
+    if (branchId) q = q.eq('branch_id', branchId)
+    if (brandId) q = q.eq('brand_id', brandId)
+    return q
+  })
+  const events = []
+  const deals = rows.map(({ events: ev, ...d }) => {
+    events.push(...(ev ?? []))
+    return d
+  })
+  return { deals, events }
 }
 
-// Latest approved plan snapshot for a branch+month, or null.
-export async function loadApprovedPlan(branchId, month) {
-  const { data, error } = await supabase
+// Latest approved commerce plan snapshot for a branch+month (+brand), or null.
+export async function loadApprovedPlan(branchId, month, brandId = null) {
+  let q = supabase
     .from('plans')
-    .select('id, version, computed, sales_avg_check')
+    .select('id, version, computed, sales_avg_check, brand_id')
     .eq('branch_id', branchId)
     .eq('month', month)
+    .eq('kind', 'commerce')
     .eq('status', 'approved')
     .order('version', { ascending: false })
     .limit(1)
+  if (brandId) q = q.eq('brand_id', brandId)
+  const { data, error } = await q
   if (error) throw error
   const plan = data?.[0]
   if (!plan) return null

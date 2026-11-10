@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
+import BrandSwitcher from './BrandSwitcher'
 import { MENU_ITEMS, SETTINGS_ITEM } from '../../lib/permissions'
 import './AppShell.css'
 
@@ -41,8 +42,8 @@ export default function AppShell() {
             ☰
           </button>
           <h1 className="shell__title">{titleForPath(location.pathname)}</h1>
-          {/* Filter panel + period switcher mount here in the reporting phase. */}
-          <div className="shell__filters-slot" />
+          {/* Sales is shared by both brands: there brand is a filter, not context. */}
+          <div className="shell__filters-slot">{!location.pathname.startsWith('/sales') && <BrandSwitcher />}</div>
         </header>
         <main className="shell__content">
           <Outlet />

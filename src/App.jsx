@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { SessionProvider } from './context/SessionContext'
+import { BrandProvider } from './context/BrandContext'
 import { ToastProvider } from './components/common/Toast'
 import ProtectedRoute from './components/Shell/ProtectedRoute'
 import AppShell from './components/Shell/AppShell'
@@ -16,6 +17,7 @@ import PerformancePage from './components/Reports/PerformancePage'
 export default function App() {
   return (
     <SessionProvider>
+      <BrandProvider>
       <ToastProvider>
         <BrowserRouter>
           <Routes>
@@ -95,6 +97,7 @@ export default function App() {
           </Routes>
         </BrowserRouter>
       </ToastProvider>
+      </BrandProvider>
     </SessionProvider>
   )
 }

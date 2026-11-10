@@ -39,11 +39,9 @@ describe('funnelCounts', () => {
     expect(c[0].count).toBeNull() // Обращение
     expect(c[1].count).toBe(3) // Квалифицирован onward numeric
   })
-  it('source filter marks stages before "Встреча состоялась" as н/д', () => {
-    const c = funnelCounts(deals, events, stages, { sourceFilter: true, meetHeldOrder: 4 })
-    expect(c[0].count).toBeNull()
-    expect(c[2].count).toBeNull() // Встреча назначена
-    expect(c[3].count).toBe(2) // Встреча состоялась numeric
+  it('source filter keeps every stage numeric (source known from обращение)', () => {
+    const c = funnelCounts(deals, events, stages, { sourceFilter: true })
+    expect(c.every((x) => x.count !== null)).toBe(true)
   })
 })
 
