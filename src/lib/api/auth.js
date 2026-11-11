@@ -17,7 +17,13 @@ export async function getSession() {
 }
 
 export function onAuthChange(callback) {
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session))
+  // Колбэк Supabase держит внутреннюю блокировку auth, пока не завершится.
+  // Если внутри него ждать другой запрос к Supabase (загрузка профиля), при
+  // обновлении токена (раз в час) все запросы встают навсегда — «висит
+  // загрузка». Поэтому колбэк не ждём, а откладываем на следующий тик.
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    setTimeout(() => callback(session), 0)
+  })
   return () => data.subscription.unsubscribe()
 }
 

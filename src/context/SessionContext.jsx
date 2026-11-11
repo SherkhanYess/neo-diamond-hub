@@ -22,12 +22,14 @@ export function SessionProvider({ children }) {
 
   useEffect(() => {
     let active = true
-    getSession().then(async (s) => {
-      if (!active) return
-      setSession(s)
-      await refreshProfile(s?.user?.id)
-      setLoading(false)
-    })
+    getSession()
+      .then(async (s) => {
+        if (!active) return
+        setSession(s)
+        await refreshProfile(s?.user?.id)
+      })
+      .catch(() => active && setSession(null))
+      .finally(() => active && setLoading(false))
     const unsub = onAuthChange(async (s) => {
       setSession(s)
       await refreshProfile(s?.user?.id)
