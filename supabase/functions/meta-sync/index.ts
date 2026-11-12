@@ -89,7 +89,7 @@ async function syncAccount(db: SupabaseClient, all: ReturnType<typeof meta>, cfg
   const rows = await all(`${account}/insights`, {
     level: 'ad',
     time_increment: 1,
-    fields: 'ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,impressions,clicks',
+    fields: 'ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,impressions,clicks,inline_link_clicks',
     time_range: JSON.stringify({ since: from, until: to }),
     limit: 500,
   })
@@ -177,7 +177,9 @@ async function syncAccount(db: SupabaseClient, all: ReturnType<typeof meta>, cfg
       fx: rate,
       spend: rate ? Math.round(usd * rate * vat) : 0,
       impressions: Number(r.impressions) || 0,
-      clicks: Number(r.clicks) || 0,
+      // Клики по ссылке (переход в WhatsApp / на сайт) = входы. Все клики Meta
+      // включают лайки и переходы в профиль — для входа не годятся.
+      clicks: Number(r.inline_link_clicks) || 0,
     }
   })
   for (let i = 0; i < stats.length; i += 500) {

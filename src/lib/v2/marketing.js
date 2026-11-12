@@ -165,6 +165,8 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
       // Отключена и за период ни расхода, ни обращений, ни продаж — прячем под «показать».
       idle: status.key === 'off' && !base.spend && !base.leads && !(base.repeats || 0) && !base.sales,
       ctr: div(base.clicks, base.impressions),
+      cpc: div(base.spend, base.clicks),
+      cr_click_lead: div(base.leads, base.clicks),
       cpl: div(base.spend, base.leads),
       cpq: div(base.spend, base.quals),
       roas: base.spend ? div(base.revenue, base.spend) : null,

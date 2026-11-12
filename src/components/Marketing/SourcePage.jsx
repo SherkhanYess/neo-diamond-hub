@@ -36,9 +36,13 @@ const CONVERTER_COLS = [
 const PERF_COLS = [
   { key: 'spend', label: 'Вложено', fmt: 'money' },
   { key: 'impressions', label: 'Показы', fmt: 'int' },
-  { key: 'ctr', label: 'CTR', fmt: 'pct' },
-  { key: 'leads', label: 'Лиды', fmt: 'int' },
-  { key: 'repeats', label: 'Повторные', fmt: 'int' },
+  { key: 'clicks', label: 'Клики', fmt: 'int', hint: 'Входы: клики по ссылке объявления — переход в WhatsApp или на сайт' },
+  { key: 'ctr', label: 'CTR', fmt: 'pct', hint: 'Клики / показы' },
+  { key: 'cpc', label: 'Цена клика', fmt: 'money' },
+  { key: 'leads', label: 'Обращения', fmt: 'int', hint: 'Заявки: уникальные — первое обращение клиента' },
+  { key: 'cr_click_lead', label: 'Клик → обращение', fmt: 'pct', hint: 'Сколько кликнувших написали' },
+  { key: 'cpl', label: 'Цена обращения', fmt: 'money' },
+  { key: 'repeats', label: 'Повторные', fmt: 'int', hint: 'Клиент уже обращался раньше — не обращение, но продажа засчитывается' },
   { key: 'quals', label: 'Квалы', fmt: 'int' },
   { key: 'cpq', label: 'Цена квала', fmt: 'money' },
   { key: 'held', label: 'Встречи', fmt: 'int' },
@@ -376,7 +380,9 @@ export default function SourcePage() {
               <tr>
                 <th className="rep__lcol">Кампания / группа / объявление</th>
                 {PERF_COLS.map((c) => (
-                  <th key={c.key}>{c.label}</th>
+                  <th key={c.key} title={c.hint || ''}>
+                    {c.label}
+                  </th>
                 ))}
               </tr>
             </thead>
