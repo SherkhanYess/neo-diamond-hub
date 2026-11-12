@@ -30,7 +30,7 @@ export async function loadAdStats(month, brandId) {
     supabase
       .from('ad_daily_stats')
       .select(
-        'day, spend, impressions, clicks, ad:ad_entities(id, parent_id, level, cabinet, name, external_id, brand_id, demand_source_id, converter_id)'
+        'day, spend, impressions, clicks, profile_visits, ad:ad_entities(id, parent_id, level, cabinet, name, external_id, brand_id, demand_source_id, converter_id)'
       )
       .gte('day', start)
       .lt('day', end)
@@ -42,6 +42,7 @@ export async function loadAdStats(month, brandId) {
       spend: Number(r.spend) || 0,
       impressions: r.impressions || 0,
       clicks: r.clicks || 0,
+      profile_visits: r.profile_visits || 0,
       ad_entity_id: r.ad.id,
       external_id: r.ad.external_id,
       brand_id: r.ad.brand_id,
@@ -122,11 +123,28 @@ export async function loadDictionaries(brandId) {
 
 export { loadCohort }
 
-// «Вход» of each converter for the month: taplink sessions, ad clicks, site
-// sessions. Missing data → no entry (shown as н/д), never a fake zero.
+// Посещения профиля Instagram бренда по дням (статистика аккаунта).
+// null — у бренда нет подключённого аккаунта или данных за период.
+export async function loadProfileViews(period, brandId) {
+  const { start, end } = periodBounds(asPeriod(period))
+  let q = supabase.from('ig_daily_stats').select('day, profile_views, brand_id').gte('day', start).lt('day', end)
+  if (brandId) q = q.eq('brand_id', brandId)
+  const { data, error } = await q
+  if (error || !data?.length) return null
+  return data.reduce((a, r) => a + (r.profile_views || 0), 0)
+}
+
+// «Клики» (вход) of each converter for the period: переходы в профиль, клики
+// рекламы, сессии сайта, таплинк. Missing data → no entry (н/д), never a fake zero.
 export async function loadConverterEntries(month, converters, adStats, utmRules = []) {
   const { start, end } = periodTs(month)
   const out = new Map()
+
+  for (const c of converters) {
+    if (c.entry_source !== 'instagram') continue
+    const views = await loadProfileViews(month, c.brand_id)
+    if (views != null) out.set(c.id, views)
+  }
 
   if (converters.some((c) => c.entry_source === 'taplink')) {
     const rows = await fetchAll(() =>

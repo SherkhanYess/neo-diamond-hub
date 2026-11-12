@@ -134,7 +134,7 @@ export default function SourcesPage() {
               <div className="srccard__stats">
                 <Stat label="Бюджет" plan={c.planM.budget} fact={c.factM.budget} fmt="money" lowerBetter pace={pace} />
                 <Stat label="Выручка" plan={c.planM.revenue} fact={c.factM.revenue} fmt="money" pace={pace} />
-                <Stat label="Лиды" fact={c.fact.leads} fmt="int" />
+                <Stat label="Заявки" fact={c.fact.leads} fmt="int" />
                 {c.fact.repeats > 0 && <Stat label="Повторные" fact={c.fact.repeats} fmt="int" />}
                 <Stat label="Квал-лиды" fact={c.fact.quals} fmt="int" />
                 <Stat label="ROAS" plan={c.planM.roas} fact={c.factM.roas} fmt="ratio1" />
@@ -147,13 +147,13 @@ export default function SourcesPage() {
 
       {unknown.leads > 0 && (
         <p className="v2__note">
-          {unknown.leads} лидов за месяц пришли без распознанного источника (UTM не совпал ни с одним правилом) — они
+          {unknown.leads} заявок за период пришли без распознанного источника (UTM не совпал ни с одним правилом) — они
           учтены в Коммерции строкой «Источник не определён». Правила — в Настройках → UTM-правила.
         </p>
       )}
       <p className="v2__note">
-        Источник определяется по UTM с этапа «Обращение»: переход на сайт из 2ГИС относится к 2ГИС, а не к Instagram.
-        Факт — по когорте обращений периода; бюджет — кабинеты по дням + ручной расход.
+        Источник определяется по UTM с этапа «Заявка»: переход на сайт из 2ГИС относится к 2ГИС, а не к Instagram.
+        Факт — по когорте заявок периода; бюджет — кабинеты по дням + ручной расход.
       </p>
     </div>
   )

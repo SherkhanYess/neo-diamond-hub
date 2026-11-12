@@ -75,7 +75,7 @@ export default function SalesDeptPage() {
     { key: 'revenue', label: 'Выручка', fmt: 'money', additive: true, plan: rep.plan.revenue ?? null, fact: g.revenue + g.repeat_revenue },
     { key: 'sales', label: 'Продажи (всего)', fmt: 'int', additive: true, plan: rep.plan.sales ?? null, fact: g.sales + g.repeat_sales },
     { key: 'held', label: 'Встреч проведено', fmt: 'int', additive: true, plan: heldPlan, fact: g.held },
-    { key: 'leads', label: 'Обращения', fmt: 'int', plan: null, fact: g.leads },
+    { key: 'leads', label: 'Заявки', fmt: 'int', plan: null, fact: g.leads },
     { key: 'avg_check', label: 'Средний чек', fmt: 'money', plan: null, fact: g.avg_check },
     { key: 'cr', label: 'Встреча → продажа', fmt: 'pct', plan: null, fact: g.cr_held_sale },
   ]

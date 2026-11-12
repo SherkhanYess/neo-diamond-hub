@@ -1,7 +1,7 @@
 import { Fragment, useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useV2Data } from '../../lib/v2/useV2Data'
-import { sourceCards, converterFunnels, performanceTree } from '../../lib/v2/marketing'
+import { sourceCards, converterFunnels, performanceTree, profileVisitsBlock } from '../../lib/v2/marketing'
 import { periodPace } from '../../lib/v2/period'
 import { usePeriod } from '../../context/PeriodContext'
 import PeriodPicker from '../v2/PeriodPicker'
@@ -17,17 +17,18 @@ import '../v2/v2.css'
 import './Marketing.css'
 
 const CONVERTER_COLS = [
-  { key: 'entry', label: 'Вход', fmt: 'int', hint: 'Визиты профиля / клики рекламы / сессии сайта' },
-  { key: 'cr_entry_lead', label: 'Вход → лид', fmt: 'pct' },
-  { key: 'leads', label: 'Лиды', fmt: 'int', hint: 'Уникальные: первое обращение клиента' },
-  { key: 'repeats', label: 'Повторные', fmt: 'int', hint: 'Клиент уже обращался раньше — не лид, но продажа засчитывается' },
-  { key: 'cr_lead_qual', label: 'Лид → квал', fmt: 'pct' },
+  { key: 'entry', label: 'Клики', fmt: 'int', hint: 'Профиль — переходы в профиль Instagram; реклама — клики по ссылке; сайт — сессии' },
+  { key: 'cr_entry_lead', label: 'Клик → заявка', fmt: 'pct' },
+  { key: 'profile_visits', label: 'В профиль', fmt: 'int', hint: 'Не нажали кнопку воронки, а перешли в профиль Instagram (нажали на аккаунт)' },
+  { key: 'leads', label: 'Заявки', fmt: 'int', hint: 'Уникальные: первая заявка клиента' },
+  { key: 'repeats', label: 'Повторные', fmt: 'int', hint: 'Клиент уже оставлял заявку раньше — не новая заявка, но продажа засчитывается' },
+  { key: 'cr_lead_qual', label: 'Заявка → квал', fmt: 'pct' },
   { key: 'quals', label: 'Квалы', fmt: 'int' },
   { key: 'held', label: 'Встречи', fmt: 'int' },
   { key: 'sales', label: 'Продажи', fmt: 'int' },
   { key: 'revenue', label: 'Выручка', fmt: 'money' },
   { key: 'budget', label: 'Вложения', fmt: 'money' },
-  { key: 'cpl', label: 'Цена лида', fmt: 'money' },
+  { key: 'cpl', label: 'Цена заявки', fmt: 'money' },
   { key: 'cpq', label: 'Цена квала', fmt: 'money' },
   { key: 'roas', label: 'ROAS', fmt: 'ratio1' },
   { key: 'ignore_share', label: 'Игнор', fmt: 'pct' },
@@ -36,13 +37,15 @@ const CONVERTER_COLS = [
 const PERF_COLS = [
   { key: 'spend', label: 'Вложено', fmt: 'money' },
   { key: 'impressions', label: 'Показы', fmt: 'int' },
-  { key: 'clicks', label: 'Клики', fmt: 'int', hint: 'Входы: клики по ссылке объявления — переход в WhatsApp или на сайт' },
+  { key: 'cpm', label: 'CPM', fmt: 'money', hint: 'Стоимость 1000 показов' },
+  { key: 'clicks', label: 'Клики', fmt: 'int', hint: 'Клики по ссылке объявления — переход в WhatsApp или на сайт' },
   { key: 'ctr', label: 'CTR', fmt: 'pct', hint: 'Клики / показы' },
   { key: 'cpc', label: 'Цена клика', fmt: 'money' },
-  { key: 'leads', label: 'Обращения', fmt: 'int', hint: 'Заявки: уникальные — первое обращение клиента' },
-  { key: 'cr_click_lead', label: 'Клик → обращение', fmt: 'pct', hint: 'Сколько кликнувших написали' },
-  { key: 'cpl', label: 'Цена обращения', fmt: 'money' },
-  { key: 'repeats', label: 'Повторные', fmt: 'int', hint: 'Клиент уже обращался раньше — не обращение, но продажа засчитывается' },
+  { key: 'profile_visits', label: 'В профиль', fmt: 'int', hint: 'Переходы в профиль Instagram из объявления: нажали на аккаунт, а не на кнопку' },
+  { key: 'leads', label: 'Заявки', fmt: 'int', hint: 'Уникальные: первая заявка клиента' },
+  { key: 'cr_click_lead', label: 'Клик → заявка', fmt: 'pct', hint: 'Сколько кликнувших написали' },
+  { key: 'cpl', label: 'Цена заявки', fmt: 'money' },
+  { key: 'repeats', label: 'Повторные', fmt: 'int', hint: 'Клиент уже оставлял заявку раньше — не новая заявка, но продажа засчитывается' },
   { key: 'quals', label: 'Квалы', fmt: 'int' },
   { key: 'cpq', label: 'Цена квала', fmt: 'money' },
   { key: 'held', label: 'Встречи', fmt: 'int' },
@@ -57,7 +60,7 @@ function Funnelette({ r }) {
   const base = r.leads || 1
   const step = (v) => `${Math.max(2, (v / base) * 100)}%`
   return (
-    <div className="funnelette" title={`лиды ${r.leads} → квал ${r.quals} → встреча ${r.held} → продажа ${r.sales}`}>
+    <div className="funnelette" title={`заявки ${r.leads} → квал ${r.quals} → встреча ${r.held} → продажа ${r.sales}`}>
       <span style={{ width: '100%' }} />
       <span style={{ width: step(r.quals) }} />
       <span style={{ width: step(r.held) }} />
@@ -103,6 +106,48 @@ function PerfRows({ nodes, depth, open, toggle, showIdle, onCreative }) {
     })
 }
 
+function ProfileVisits({ block }) {
+  const v = (x) => (x == null ? 'н/д' : fmtValue('int', x))
+  return (
+    <section className="src__block pv">
+      <h3 className="src__section">Переходы в профиль</h3>
+      <div className="pv__grid">
+        <div className="pv__card">
+          <span className="pv__label">Всего переходов в профиль</span>
+          <b className="pv__value mono">{v(block.total)}</b>
+          <span className="pv__sub">статистика Instagram за период</span>
+        </div>
+        <div className="pv__card">
+          <span className="pv__label">Из других воронок</span>
+          <b className="pv__value mono">{v(block.fromOthers)}</b>
+          <ul className="pv__list">
+            {block.others.map((o) => (
+              <li key={o.converter.id}>
+                <span>{o.converter.name}</span>
+                <b className="mono">{o.visits == null ? 'н/д' : fmtValue('int', o.visits)}</b>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="pv__card">
+          <span className="pv__label">Органика</span>
+          <b className="pv__value mono">{v(block.organic)}</b>
+          <span className="pv__sub">bio, сторис, посты, рекомендации — всё, кроме других воронок</span>
+        </div>
+        <div className="pv__card">
+          <span className="pv__label">Заявки с профиля</span>
+          <b className="pv__value mono">{v(block.leads)}</b>
+          <span className="pv__sub">переход → заявка {block.cr == null ? 'н/д' : fmtValue('pct', block.cr)}</span>
+        </div>
+      </div>
+      <p className="v2__note">
+        Переходы из рекламы — из Meta (нажали на аккаунт в объявлении). Сайт-каталог и гайд-каталог — «н/д»: сайт пока не
+        передаёт клики по ссылке на Instagram, после доработки сайта цифры появятся здесь сами.
+      </p>
+    </section>
+  )
+}
+
 // Instagram-пост объявления можно встроить: /p/<код>/embed показывает сам креатив (видео, карусель).
 const igEmbed = (permalink) => {
   const m = String(permalink || '').match(/instagram\.com\/(p|reel|tv)\/([\w-]+)/)
@@ -144,7 +189,9 @@ function CreativeModal({ node, onClose }) {
         <div className="creative__stats">
           {[
             ['Расход', fmtValue('money', node.spend)],
-            ['Лиды', fmtValue('int', node.leads)],
+            ['Клики', fmtValue('int', node.clicks)],
+            ['В профиль', fmtValue('int', node.profile_visits)],
+            ['Заявки', fmtValue('int', node.leads)],
             ['Квалы', fmtValue('int', node.quals)],
             ['Цена квала', fmtValue('money', node.cpq)],
             ['Продажи', fmtValue('int', node.sales)],
@@ -222,6 +269,17 @@ export default function SourcePage() {
     return cards[0]
   }, [source, deals, d.events, d.plans, d.spend, d.spendBrands, d.stages])
 
+  // Переходы в профиль из рекламных воронок — из Meta, по конвертеру объявления.
+  const profileVisits = useMemo(() => {
+    const m = new Map()
+    for (const c of converters) {
+      if (c.entry_source !== 'ads') continue
+      const rows = d.adStats.filter((r) => r.converter_id === c.id)
+      if (rows.length) m.set(c.id, rows.reduce((a, r) => a + (r.profile_visits || 0), 0))
+    }
+    return m
+  }, [converters, d.adStats])
+
   const funnels = useMemo(
     () =>
       converterFunnels({
@@ -233,9 +291,14 @@ export default function SourcePage() {
         spendKnown: d.spendBrands.has(brandOfSource),
         entries,
         brandId: brandOfSource,
+        profileVisits,
       }),
-    [deals, d.events, d.stages, converters, d.spend, d.spendBrands, entries, brandOfSource]
+    [deals, d.events, d.stages, converters, d.spend, d.spendBrands, entries, brandOfSource, profileVisits]
   )
+  const profileBlock = useMemo(() => {
+    const prof = converters.find((c) => c.entry_source === 'instagram')
+    return prof ? profileVisitsBlock({ total: entries.get(prof.id) ?? null, rows: funnels.rows }) : null
+  }, [converters, entries, funnels.rows])
 
   const perf = useMemo(() => {
     const ids = new Set(entities.map((e) => e.id))
@@ -258,13 +321,15 @@ export default function SourcePage() {
   const kpis = [
     { key: 'budget', label: 'Бюджет', plan: card.planM.budget, fact: card.factM.budget, fmt: 'money', lowerBetter: true, additive: true },
     { key: 'revenue', label: 'Выручка', plan: card.planM.revenue, fact: card.factM.revenue, fmt: 'money', additive: true },
-    { key: 'leads', label: 'Лиды', plan: null, fact: card.fact.leads, fmt: 'int' },
-    { key: 'repeats', label: 'Повторные обращения', plan: null, fact: card.fact.repeats || 0, fmt: 'int' },
+    { key: 'leads', label: 'Заявки', plan: null, fact: card.fact.leads, fmt: 'int' },
+    { key: 'repeats', label: 'Повторные заявки', plan: null, fact: card.fact.repeats || 0, fmt: 'int' },
     { key: 'quals', label: 'Квал-лиды', plan: null, fact: card.fact.quals, fmt: 'int' },
     { key: 'roas', label: 'ROAS', plan: card.planM.roas, fact: card.factM.roas, fmt: 'ratio1' },
     { key: 'cpq', label: 'Стоимость квала', plan: null, fact: card.factM.cpq, fmt: 'money' },
   ]
-  const hasTaplink = converters.some((c) => c.entry_source === 'taplink')
+  const hasTaplink =
+    converters.some((c) => c.entry_source === 'taplink') ||
+    (d.byId.brands[brandOfSource]?.slug === 'neodiamond' && converters.some((c) => c.entry_source === 'instagram'))
   const toggle = (id, cur) => setOpen((o) => ({ ...o, [id]: !cur }))
 
   return (
@@ -332,10 +397,13 @@ export default function SourcePage() {
         </div>
       )}
       <p className="v2__note">
-        Воронка: лид → квал → встреча → продажа (ширина — доля от лидов). Лид — первое обращение клиента;
-        «Повторные» — клиент уже обращался раньше: в лиды и конверсии не входит, его продажа и выручка засчитываются. «Вход» — визиты профиля (таплинк), клики
-        рекламы или сессии сайта; «н/д», если данных о входе нет.
+        Воронка: заявка → квал → встреча → продажа (ширина — доля от заявок). Заявка — первая заявка клиента;
+        «Повторные» — клиент уже оставлял заявку раньше: в заявки и конверсии не входит, его продажа и выручка
+        засчитываются. «Клики» — у профиля переходы в профиль Instagram, у рекламы клики по ссылке, у сайта сессии;
+        «В профиль» — сколько людей из воронки перешли в профиль Instagram вместо её кнопки; «н/д» — данных нет.
       </p>
+
+      {profileBlock && <ProfileVisits block={profileBlock} />}
 
       {hasTaplink && (
         <div className="src__block">

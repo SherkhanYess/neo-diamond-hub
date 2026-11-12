@@ -12,7 +12,7 @@ import { fmtValue } from '../v2/PlanFactTree'
 
 const FIELDS = [
   { key: 'budget', label: 'Бюджет, ₸', fmt: 'money' },
-  { key: 'leads', label: 'Лиды', fmt: 'int' },
+  { key: 'leads', label: 'Заявки', fmt: 'int' },
   { key: 'quals', label: 'Квал-лиды', fmt: 'int' },
 ]
 
@@ -113,7 +113,7 @@ export default function MarketingPlan({ month }) {
           gaps={gaps}
           summary={[
             { label: 'Бюджет конвертеров', value: total.budget, fmt: 'money' },
-            { label: 'Лиды', value: total.leads, fmt: 'int' },
+            { label: 'Заявки', value: total.leads, fmt: 'int' },
             { label: 'Квал-лиды', value: total.quals, fmt: 'int' },
           ]}
           onCreate={run(() => createKindDraft('marketing', month, brandFilter, actorId), 'Черновик создан.')}

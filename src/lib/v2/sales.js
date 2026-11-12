@@ -5,7 +5,7 @@
 import { reachedStages, isWon } from './metrics'
 
 export const SALES_METRICS = {
-  leads: { label: 'Обращения', fmt: 'int', additive: true },
+  leads: { label: 'Заявки', fmt: 'int', additive: true },
   quals: { label: 'Квал-лиды', fmt: 'int', additive: true },
   set: { label: 'Встреч назначено', fmt: 'int', additive: true },
   held: { label: 'Встреч проведено', fmt: 'int', additive: true },
@@ -14,7 +14,7 @@ export const SALES_METRICS = {
   repeat_sales: { label: 'Повторные продажи', fmt: 'int', additive: true },
   repeat_revenue: { label: 'Выручка с базы', fmt: 'money', additive: true },
   avg_check: { label: 'Средний чек', fmt: 'money' },
-  cr_lead_qual: { label: 'Лид → квал', fmt: 'pct' },
+  cr_lead_qual: { label: 'Заявка → квал', fmt: 'pct' },
   cr_qual_set: { label: 'Квал → назначена', fmt: 'pct' },
   cr_set_held: { label: 'Назначена → состоялась', fmt: 'pct' },
   cr_held_sale: { label: 'Встреча → продажа', fmt: 'pct' },

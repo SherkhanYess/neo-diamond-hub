@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sourceCards, converterFunnels, performanceTree, adStatus } from './marketing'
+import { sourceCards, converterFunnels, performanceTree, adStatus, profileVisitsBlock } from './marketing'
 import { spendIndex } from './metrics'
 
 const B = 'nd'
@@ -128,5 +128,44 @@ describe('статусы РК в Performance', () => {
     expect(adStatus('ADSET_PAUSED').key).toBe('off')
     expect(adStatus('DISAPPROVED').key).toBe('issue')
     expect(adStatus(null)).toMatchObject({ key: 'off', unknown: true })
+  })
+})
+
+describe('переходы в профиль и CPM', () => {
+  const conv = (id, entry_source) => ({ id, entry_source, name: id, brand_id: B })
+  const convs = [conv('prof', 'instagram'), conv('ads', 'ads'), conv('site', 'site')]
+  const f = converterFunnels({
+    deals: [{ id: 'd1', converter_id: 'prof', is_unique: true }],
+    events: [],
+    stages,
+    converters: convs,
+    spendByConverter: new Map(),
+    spendKnown: false,
+    entries: new Map([['prof', 1000], ['ads', 300]]),
+    profileVisits: new Map([['ads', 120]]),
+  })
+  it('у воронки — переходы в профиль, у сайта без данных — н/д', () => {
+    const by = Object.fromEntries(f.rows.map((r) => [r.converter.id, r]))
+    expect(by.ads.profile_visits).toBe(120)
+    expect(by.site.profile_visits).toBeNull()
+    expect(by.prof.profile_visits).toBeNull()
+  })
+  it('блок профиля: всего, из других воронок, органика', () => {
+    const b = profileVisitsBlock({ total: 1000, rows: f.rows })
+    expect(b.fromOthers).toBe(120)
+    expect(b.organic).toBe(880)
+    expect(b.leads).toBe(1)
+    expect(b.others.map((o) => o.converter.id)).toEqual(['ads', 'site'])
+  })
+  it('CPM — стоимость 1000 показов', () => {
+    const t = performanceTree({
+      entities: [{ id: 'c', level: 'campaign', parent_id: null }, { id: 'g', level: 'group', parent_id: 'c' }, { id: 'a', level: 'ad', parent_id: 'g', external_id: '1' }],
+      stats: [{ ad_entity_id: 'a', spend: 5000, impressions: 2000, clicks: 10, profile_visits: 7 }],
+      deals: [],
+      events: [],
+      stages,
+    })
+    expect(t.campaigns[0].cpm).toBe(2500)
+    expect(t.campaigns[0].profile_visits).toBe(7)
   })
 })

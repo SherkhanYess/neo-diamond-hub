@@ -54,7 +54,7 @@ export default function PulseTable({ rows, period, month, pace = 1, storageKey, 
         {onBasis && (
           <div className="mx__group-toggle" title="К какому дню относить квал, встречу и продажу">
             <button className={basis === 'lead' ? 'is-active' : ''} onClick={() => onBasis('lead')}>
-              По дате обращения
+              По дате заявки
             </button>
             <button className={basis === 'stage' ? 'is-active' : ''} onClick={() => onBasis('stage')}>
               По дате этапа
@@ -131,7 +131,7 @@ export default function PulseTable({ rows, period, month, pace = 1, storageKey, 
         В колонках по {grouping === 'week' ? 'неделям' : 'дням'} — только факт.{' '}
         {onBasis &&
           (basis === 'lead'
-            ? 'По дате обращения: квал, встреча и продажа стоят в дне, когда пришёл лид — прошлые дни дорастают, пока ОП дорабатывает лиды. '
+            ? 'По дате заявки: квал, встреча и продажа стоят в дне, когда пришла заявка — прошлые дни дорастают, пока ОП дорабатывает лиды. '
             : 'По дате этапа: квал, встреча и продажа стоят в дне, когда их сделали — это работа за день. ')}
         «Метрики» скрывают строки. {note}
       </p>

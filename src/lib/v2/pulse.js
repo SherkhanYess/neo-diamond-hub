@@ -66,7 +66,7 @@ export function funnelRows({ deals, events, orderedStages, stagePlans = {}, rate
       // Не лид и не входит в конверсии; продажа по ним — в строке продаж.
       rows.push({
         key: 'repeats',
-        label: 'Повторные обращения',
+        label: 'Повторные заявки',
         fmt: 'num1',
         plan: null,
         fact: sumMap(series.repeatsByDay),

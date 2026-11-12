@@ -57,7 +57,9 @@ const div = (a, b) => (b ? a / b : null)
 
 // Level 2 — compare the converters of one source.
 // entries: Map converter_id → entry count (visits / clicks) or undefined (н/д).
-export function converterFunnels({ deals, events, stages, converters, spendByConverter, spendKnown, entries, brandId }) {
+// profileVisits: Map converter_id → переходы в профиль из этой воронки (реклама — из Meta;
+// нет в Map — н/д: сайт пока не передаёт клики на Instagram).
+export function converterFunnels({ deals, events, stages, converters, spendByConverter, spendKnown, entries, brandId, profileVisits = new Map() }) {
   const reached = reachedStages(events)
   const rows = converters.map((c) => {
     const ds = deals.filter((d) => d.converter_id === c.id)
@@ -71,6 +73,7 @@ export function converterFunnels({ deals, events, stages, converters, spendByCon
       ...f,
       budget,
       cr_entry_lead: hasEntry ? div(f.leads, entry) : null,
+      profile_visits: c.entry_source === 'instagram' ? null : profileVisits.get(c.id) ?? null,
       cr_lead_qual: div(f.quals, f.leads),
       cr_qual_held: div(f.held, f.quals),
       cr_held_sale: div(f.sales, f.held),
@@ -118,10 +121,11 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
   const reached = reachedStages(events)
   const statBy = new Map()
   for (const s of stats) {
-    const cur = statBy.get(s.ad_entity_id) || { spend: 0, impressions: 0, clicks: 0 }
+    const cur = statBy.get(s.ad_entity_id) || { spend: 0, impressions: 0, clicks: 0, profile_visits: 0 }
     cur.spend += s.spend
     cur.impressions += s.impressions
     cur.clicks += s.clicks
+    cur.profile_visits += s.profile_visits || 0
     statBy.set(s.ad_entity_id, cur)
   }
   const dealsByAd = new Map()
@@ -136,7 +140,7 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
     const kids = e.level === 'ad' ? [] : children(e.id).map(node).sort(byStatusThenSpend)
     let base
     if (e.level === 'ad') {
-      const st = statBy.get(e.id) || { spend: 0, impressions: 0, clicks: 0 }
+      const st = statBy.get(e.id) || { spend: 0, impressions: 0, clicks: 0, profile_visits: 0 }
       const ds = dealsByAd.get(e.external_id) || []
       base = { ...st, ...funnelOf(ds, reached, stages) }
     } else {
@@ -145,6 +149,7 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
           spend: a.spend + k.spend,
           impressions: a.impressions + k.impressions,
           clicks: a.clicks + k.clicks,
+          profile_visits: a.profile_visits + (k.profile_visits || 0),
           leads: a.leads + k.leads,
           quals: a.quals + k.quals,
           set: a.set + k.set,
@@ -154,7 +159,7 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
           ignored: a.ignored + k.ignored,
           repeats: a.repeats + (k.repeats || 0),
         }),
-        { spend: 0, impressions: 0, clicks: 0, leads: 0, quals: 0, set: 0, held: 0, sales: 0, revenue: 0, ignored: 0, repeats: 0 }
+        { spend: 0, impressions: 0, clicks: 0, profile_visits: 0, leads: 0, quals: 0, set: 0, held: 0, sales: 0, revenue: 0, ignored: 0, repeats: 0 }
       )
     }
     const status = adStatus(e.status)
@@ -166,6 +171,7 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
       idle: status.key === 'off' && !base.spend && !base.leads && !(base.repeats || 0) && !base.sales,
       ctr: div(base.clicks, base.impressions),
       cpc: div(base.spend, base.clicks),
+      cpm: base.impressions ? (base.spend / base.impressions) * 1000 : null,
       cr_click_lead: div(base.leads, base.clicks),
       cpl: div(base.spend, base.leads),
       cpq: div(base.spend, base.quals),
@@ -181,4 +187,22 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
   // Leads that came through an ad converter but carry no (known) ad id.
   const noAd = deals.filter((d) => d.utm_campaign && (!d.ad_id || !known.has(d.ad_id)))
   return { campaigns, idle: campaigns.filter((c) => c.idle).length, noAd: noAd.length ? funnelOf(noAd, reached, stages) : null }
+}
+
+// Переходы в профиль: всего по статистике Instagram и сколько из них пришло из
+// других воронок (реклама — из Meta; сайт/гайд — пока н/д). Остальное — органика.
+export function profileVisitsBlock({ total, rows }) {
+  const others = rows
+    .filter((r) => r.converter.entry_source !== 'instagram')
+    .map((r) => ({ converter: r.converter, visits: r.profile_visits }))
+  const known = others.filter((o) => o.visits != null).reduce((a, o) => a + o.visits, 0)
+  const profile = rows.find((r) => r.converter.entry_source === 'instagram')
+  return {
+    total,
+    others,
+    fromOthers: known,
+    organic: total == null ? null : Math.max(0, total - known),
+    leads: profile?.leads ?? null,
+    cr: total ? div(profile?.leads ?? 0, total) : null,
+  }
 }

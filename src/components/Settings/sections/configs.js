@@ -99,7 +99,8 @@ export const ENTRY_SOURCES = [
   { value: 'taplink', label: 'Таплинк (link.neodiamond.kz)' },
   { value: 'site', label: 'Сайт-каталог (события сайта)' },
   { value: 'ads', label: 'Клики рекламы' },
-  { value: 'none', label: 'Нет данных о входе' },
+  { value: 'instagram', label: 'Переходы в профиль Instagram' },
+  { value: 'none', label: 'Нет данных о кликах' },
 ]
 
 const entryLabel = (v) => ENTRY_SOURCES.find((e) => e.value === v)?.label ?? '—'
@@ -117,12 +118,12 @@ export const convertersConfig = {
   columns: [
     { key: 'source', label: 'Источник', render: (r) => r.source?.name ?? '—' },
     { key: 'name', label: 'Конвертер' },
-    { key: 'entry_source', label: 'Вход воронки', render: (r) => entryLabel(r.entry_source) },
+    { key: 'entry_source', label: 'Клики воронки', render: (r) => entryLabel(r.entry_source) },
   ],
   fields: [
     { key: 'demand_source_id', label: 'Источник спроса', type: 'select', optionsFrom: 'demand_sources', required: true },
     { key: 'name', label: 'Название', type: 'text', required: true },
-    { key: 'entry_source', label: 'Откуда брать «вход» воронки', type: 'select', options: ENTRY_SOURCES, required: true },
+    { key: 'entry_source', label: 'Откуда брать клики воронки', type: 'select', options: ENTRY_SOURCES, required: true },
   ],
 }
 

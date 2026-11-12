@@ -89,7 +89,7 @@ async function syncAccount(db: SupabaseClient, all: ReturnType<typeof meta>, cfg
   const rows = await all(`${account}/insights`, {
     level: 'ad',
     time_increment: 1,
-    fields: 'ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,impressions,clicks,inline_link_clicks',
+    fields: 'ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name,spend,impressions,clicks,inline_link_clicks,instagram_profile_visits',
     time_range: JSON.stringify({ since: from, until: to }),
     limit: 500,
   })
@@ -180,6 +180,8 @@ async function syncAccount(db: SupabaseClient, all: ReturnType<typeof meta>, cfg
       // Клики по ссылке (переход в WhatsApp / на сайт) = входы. Все клики Meta
       // включают лайки и переходы в профиль — для входа не годятся.
       clicks: Number(r.inline_link_clicks) || 0,
+      // Переходы в профиль Instagram из объявления (нажали на аккаунт, а не на кнопку).
+      profile_visits: Number(r.instagram_profile_visits) || 0,
     }
   })
   for (let i = 0; i < stats.length; i += 500) {
@@ -189,9 +191,37 @@ async function syncAccount(db: SupabaseClient, all: ReturnType<typeof meta>, cfg
   return { account, rows: rows.length, campaigns: camps.size, ads: ads.size, usd: Math.round(stats.reduce((a, s) => a + s.spend_usd, 0)) }
 }
 
+// Статистика Instagram-аккаунтов брендов: посещения профиля по дням.
+// profile_views с metric_type=total_value — сумма за интервал, поэтому по дню.
+async function syncInstagram(db: SupabaseClient, token: string, api: string, cfg: Cfg, ctx: any, from: string, to: string) {
+  const out: any[] = []
+  for (const [igId, info] of Object.entries(cfg.instagram ?? {}) as [string, any][]) {
+    const brand = ctx.brands.find((b: any) => b.slug === info.brand)
+    const rows: any[] = []
+    for (let d = new Date(from + 'T00:00:00Z'); ymd(d) <= to; d = new Date(d.getTime() + 86400000)) {
+      const day = ymd(d)
+      const next = ymd(new Date(d.getTime() + 86400000))
+      // Сутки по Алматы (UTC+5).
+      const since = Math.floor(new Date(day + 'T00:00:00+05:00').getTime() / 1000)
+      const until = Math.floor(new Date(next + 'T00:00:00+05:00').getTime() / 1000)
+      const q = new URLSearchParams({ metric: 'profile_views', period: 'day', metric_type: 'total_value', since: String(since), until: String(until), access_token: token })
+      const res = await fetch(`https://graph.facebook.com/${api}/${igId}/insights?${q}`)
+      const body = await res.json()
+      if (body.error) throw new Error(`Instagram ${igId}: ${body.error.message}`)
+      rows.push({ ig_user_id: igId, day, brand_id: brand?.id ?? null, profile_views: Number(body.data?.[0]?.total_value?.value) || 0 })
+    }
+    if (rows.length) {
+      const { error } = await db.from('ig_daily_stats').upsert(rows, { onConflict: 'ig_user_id,day' })
+      if (error) throw new Error(`ig_daily_stats: ${error.message}`)
+    }
+    out.push({ ig: info.username ?? igId, days: rows.length, profile_views: rows.reduce((a, r) => a + r.profile_views, 0) })
+  }
+  return out
+}
+
 // Статусы (effective_status) и креативы — для всех сущностей кабинета, что уже
 // есть в хабе. Отсутствующие в ответе Meta (удалённые/в архиве) → ARCHIVED.
-const CREATIVE = 'creative.thumbnail_width(600).thumbnail_height(600){thumbnail_url,image_url,instagram_permalink_url}'
+const CREATIVE = 'creative.thumbnail_width(600).thumbnail_height(600){thumbnail_url,image_url,instagram_permalink_url,instagram_user_id}'
 async function syncStatuses(db: SupabaseClient, all: ReturnType<typeof meta>, account: string) {
   const known: any[] = []
   for (let from = 0; ; from += 1000) {
@@ -222,6 +252,7 @@ async function syncStatuses(db: SupabaseClient, all: ReturnType<typeof meta>, ac
       row.thumbnail_url = x.creative?.image_url ?? x.creative?.thumbnail_url ?? null
       row.permalink = x.creative?.instagram_permalink_url ?? null
       row.preview_url = x.preview_shareable_link ?? null
+      row.ig_user_id = x.creative?.instagram_user_id ?? null
     }
     return row
   })
@@ -271,7 +302,8 @@ Deno.serve(async (req) => {
       if (mode !== 'range' || body.statuses) r.status = await syncStatuses(db, all, a)
       results.push(r)
     }
-    const stats = { mode, from, to, results }
+    const instagram = await syncInstagram(db, Deno.env.get('META_TOKEN')!, cfg.api ?? 'v21.0', cfg, ctx, from, to)
+    const stats = { mode, from, to, results, instagram }
     await db
       .from('integrations')
       .update({ last_run_at: new Date().toISOString(), last_ok_at: new Date().toISOString(), last_error: null, last_stats: stats })
