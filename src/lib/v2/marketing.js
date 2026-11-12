@@ -85,6 +85,33 @@ export function converterFunnels({ deals, events, stages, converters, spendByCon
   return { rows, orphan: orphan.length ? funnelOf(orphan, reached, stages) : null }
 }
 
+// Статус в Meta (effective_status) → что показываем. rank — порядок в списке.
+const STATUS_GROUPS = [
+  { key: 'active', label: 'Работает', rank: 0, codes: ['ACTIVE'] },
+  { key: 'review', label: 'На проверке', rank: 1, codes: ['IN_PROCESS', 'PENDING_REVIEW', 'PREAPPROVED', 'PENDING_BILLING_INFO'] },
+  { key: 'issue', label: 'Ошибка', rank: 2, codes: ['WITH_ISSUES', 'DISAPPROVED'] },
+]
+const STATUS_OFF = { key: 'off', label: 'Отключена', rank: 3 }
+const STATUS_HINT = {
+  ACTIVE: 'Работает',
+  PAUSED: 'Остановлена вручную',
+  CAMPAIGN_PAUSED: 'Остановлена кампания',
+  ADSET_PAUSED: 'Остановлена группа',
+  ARCHIVED: 'В архиве или удалена',
+  DELETED: 'Удалена',
+  WITH_ISSUES: 'Есть ошибки',
+  DISAPPROVED: 'Отклонено модерацией',
+  IN_PROCESS: 'Обновляется',
+  PENDING_REVIEW: 'На проверке',
+  PENDING_BILLING_INFO: 'Нужны платёжные данные',
+}
+export function adStatus(code) {
+  const g = STATUS_GROUPS.find((x) => x.codes.includes(code)) ?? STATUS_OFF
+  return { key: g.key, label: g.label, rank: g.rank, hint: code ? STATUS_HINT[code] ?? code : 'Статус ещё не загружен', unknown: !code }
+}
+// Сначала работающие, внутри — по расходу, затем по лидам.
+const byStatusThenSpend = (a, b) => a.status.rank - b.status.rank || b.spend - a.spend || b.leads - a.leads
+
 // Level 3 — Performance inside the source: campaign → group → ad.
 // entities: ad_entities of the source; stats: daily rows (period); deals: the source's cohort.
 export function performanceTree({ entities, stats, deals, events, stages, minQuals = 10 }) {
@@ -106,7 +133,7 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
   const children = (id) => entities.filter((e) => e.parent_id === id)
 
   const node = (e) => {
-    const kids = e.level === 'ad' ? [] : children(e.id).map(node)
+    const kids = e.level === 'ad' ? [] : children(e.id).map(node).sort(byStatusThenSpend)
     let base
     if (e.level === 'ad') {
       const st = statBy.get(e.id) || { spend: 0, impressions: 0, clicks: 0 }
@@ -130,9 +157,13 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
         { spend: 0, impressions: 0, clicks: 0, leads: 0, quals: 0, set: 0, held: 0, sales: 0, revenue: 0, ignored: 0, repeats: 0 }
       )
     }
+    const status = adStatus(e.status)
     return {
       entity: e,
       ...base,
+      status,
+      // Отключена и за период ни расхода, ни обращений, ни продаж — прячем под «показать».
+      idle: status.key === 'off' && !base.spend && !base.leads && !(base.repeats || 0) && !base.sales,
       ctr: div(base.clicks, base.impressions),
       cpl: div(base.spend, base.leads),
       cpq: div(base.spend, base.quals),
@@ -143,9 +174,9 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
     }
   }
 
-  const campaigns = entities.filter((e) => e.level === 'campaign').map(node)
+  const campaigns = entities.filter((e) => e.level === 'campaign').map(node).sort(byStatusThenSpend)
   const known = new Set(entities.filter((e) => e.level === 'ad').map((e) => e.external_id))
   // Leads that came through an ad converter but carry no (known) ad id.
   const noAd = deals.filter((d) => d.utm_campaign && (!d.ad_id || !known.has(d.ad_id)))
-  return { campaigns, noAd: noAd.length ? funnelOf(noAd, reached, stages) : null }
+  return { campaigns, idle: campaigns.filter((c) => c.idle).length, noAd: noAd.length ? funnelOf(noAd, reached, stages) : null }
 }

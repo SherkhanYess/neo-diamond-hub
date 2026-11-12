@@ -62,28 +62,109 @@ function Funnelette({ r }) {
   )
 }
 
-function PerfRows({ nodes, depth, open, toggle }) {
-  return nodes.map((n) => {
-    const kids = n.children?.length > 0
-    const isOpen = open[n.entity.id] ?? depth === 0
-    return (
-      <Fragment key={n.entity.id}>
-        <tr className={`pft__row pft__row--d${depth} ${kids ? 'rep__clickable' : ''}`}>
-          <td className="rep__lcol pft__name" style={{ paddingLeft: 12 + depth * 22 }} onClick={() => kids && toggle(n.entity.id, isOpen)}>
-            {kids ? <span className="mx__caret">{isOpen ? '▾' : '▸'}</span> : <span className="mx__caret" />}
-            {n.entity.name.replace(/^v2demo · /, '')}
-            {n.entity.level === 'ad' && n.low_data && <span className="perf__badge">мало данных</span>}
-          </td>
-          {PERF_COLS.map((c) => (
-            <td key={c.key} className={`rep__num mono ${n.entity.level === 'ad' && (c.key === 'roas' || c.key === 'sales' || c.key === 'revenue') ? 'perf__muted' : ''}`}>
-              {fmtValue(c.fmt, n[c.key])}
+function StatusDot({ status }) {
+  return <span className={`perf__dot perf__dot--${status.key}`} title={`${status.label}${status.hint && status.hint !== status.label ? ` · ${status.hint}` : ''}`} />
+}
+
+function PerfRows({ nodes, depth, open, toggle, showIdle, onCreative }) {
+  return nodes
+    .filter((n) => showIdle || !n.idle)
+    .map((n) => {
+      const kids = n.children?.some((k) => showIdle || !k.idle)
+      const isOpen = open[n.entity.id] ?? (depth === 0 && n.status.key !== 'off')
+      const isAd = n.entity.level === 'ad'
+      return (
+        <Fragment key={n.entity.id}>
+          <tr className={`pft__row pft__row--d${depth} ${kids || isAd ? 'rep__clickable' : ''} ${n.status.key === 'off' ? 'perf__row--off' : ''}`}>
+            <td
+              className="rep__lcol pft__name"
+              style={{ paddingLeft: 12 + depth * 22 }}
+              onClick={() => (isAd ? onCreative(n) : kids && toggle(n.entity.id, isOpen))}
+            >
+              {kids ? <span className="mx__caret">{isOpen ? '▾' : '▸'}</span> : <span className="mx__caret" />}
+              <StatusDot status={n.status} />
+              {isAd && n.entity.thumbnail_url && <img className="perf__thumb" src={n.entity.thumbnail_url} alt="" loading="lazy" />}
+              <span className={isAd ? 'perf__adname' : ''}>{n.entity.name.replace(/^v2demo · /, '')}</span>
+              {isAd && n.low_data && <span className="perf__badge">мало данных</span>}
             </td>
+            {PERF_COLS.map((c) => (
+              <td key={c.key} className={`rep__num mono ${isAd && (c.key === 'roas' || c.key === 'sales' || c.key === 'revenue') ? 'perf__muted' : ''}`}>
+                {fmtValue(c.fmt, n[c.key])}
+              </td>
+            ))}
+          </tr>
+          {kids && isOpen && <PerfRows nodes={n.children} depth={depth + 1} open={open} toggle={toggle} showIdle={showIdle} onCreative={onCreative} />}
+        </Fragment>
+      )
+    })
+}
+
+// Instagram-пост объявления можно встроить: /p/<код>/embed показывает сам креатив (видео, карусель).
+const igEmbed = (permalink) => {
+  const m = String(permalink || '').match(/instagram\.com\/(p|reel|tv)\/([\w-]+)/)
+  return m ? `https://www.instagram.com/${m[1]}/${m[2]}/embed` : null
+}
+
+function CreativeModal({ node, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+  const e = node.entity
+  const embed = igEmbed(e.permalink)
+  return (
+    <div className="confirm__backdrop" onClick={onClose}>
+      <div className="creative" role="dialog" aria-modal="true" onClick={(ev) => ev.stopPropagation()}>
+        <div className="creative__head">
+          <div>
+            <h3 className="creative__title">{e.name}</h3>
+            <span className="creative__status">
+              <StatusDot status={node.status} /> {node.status.label}
+              {node.status.hint && node.status.hint !== node.status.label ? ` · ${node.status.hint}` : ''}
+            </span>
+          </div>
+          <button className="creative__close" onClick={onClose} aria-label="Закрыть">
+            ×
+          </button>
+        </div>
+        <div className="creative__media">
+          {embed ? (
+            <iframe title={e.name} src={embed} loading="lazy" allowFullScreen />
+          ) : e.thumbnail_url ? (
+            <img src={e.thumbnail_url} alt={e.name} />
+          ) : (
+            <p className="cycle__empty">Превью нет — Meta не отдала креатив (объявление удалено или в архиве).</p>
+          )}
+        </div>
+        <div className="creative__stats">
+          {[
+            ['Расход', fmtValue('money', node.spend)],
+            ['Лиды', fmtValue('int', node.leads)],
+            ['Квалы', fmtValue('int', node.quals)],
+            ['Цена квала', fmtValue('money', node.cpq)],
+            ['Продажи', fmtValue('int', node.sales)],
+          ].map(([k, v]) => (
+            <span key={k}>
+              {k} <b className="mono">{v}</b>
+            </span>
           ))}
-        </tr>
-        {kids && isOpen && <PerfRows nodes={n.children} depth={depth + 1} open={open} toggle={toggle} />}
-      </Fragment>
-    )
-  })
+        </div>
+        <div className="creative__links">
+          {e.permalink && (
+            <a className="btn btn--ghost" href={e.permalink} target="_blank" rel="noreferrer">
+              Открыть в Instagram
+            </a>
+          )}
+          {e.preview_url && (
+            <a className="btn btn--ghost" href={e.preview_url} target="_blank" rel="noreferrer">
+              Превью рекламы в Facebook
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // Маркетинг, уровни 2–3 — дашборд источника: конвертеры и Performance.
@@ -99,6 +180,8 @@ export default function SourcePage() {
   const [open, setOpen] = useState({})
   const [showTaplink, setShowTaplink] = useState(false)
   const [deciding, setDeciding] = useState(false)
+  const [showIdle, setShowIdle] = useState(false)
+  const [creative, setCreative] = useState(null)
 
   const source = d.byId.sources[sourceId]
   const converters = useMemo(
@@ -263,7 +346,25 @@ export default function SourcePage() {
         </div>
       )}
 
-      <h3 className="src__section">Performance</h3>
+      <div className="perf__head">
+        <h3 className="src__section">Performance</h3>
+        {perf.campaigns.length > 0 && (
+          <div className="perf__legend">
+            <span>
+              <StatusDot status={{ key: 'active', label: 'Работает' }} /> работает <b className="mono">{perf.campaigns.filter((c) => c.status.key === 'active').length}</b>
+            </span>
+            <span>
+              <StatusDot status={{ key: 'off', label: 'Отключена' }} /> отключена <b className="mono">{perf.campaigns.filter((c) => c.status.key === 'off').length}</b>
+            </span>
+            {perf.idle > 0 && (
+              <button className="crud__link" onClick={() => setShowIdle((v) => !v)}>
+                {showIdle ? 'Скрыть отключённые без расходов' : `Показать отключённые без расходов в периоде (${perf.idle})`}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      {creative && <CreativeModal node={creative} onClose={() => setCreative(null)} />}
       {perf.campaigns.length === 0 ? (
         <p className="v2__note">
           Рекламных кампаний, привязанных к этому источнику, нет. Привяжите кампании в Настройках → Рекламные кампании.
@@ -280,7 +381,7 @@ export default function SourcePage() {
               </tr>
             </thead>
             <tbody>
-              <PerfRows nodes={perf.campaigns} depth={0} open={open} toggle={toggle} />
+              <PerfRows nodes={perf.campaigns} depth={0} open={open} toggle={toggle} showIdle={showIdle} onCreative={setCreative} />
               {perf.noAd && (
                 <tr className="perf__noad">
                   <td className="rep__lcol">Без объявления</td>
@@ -298,7 +399,8 @@ export default function SourcePage() {
       <p className="v2__note">
         Бюджет по РК не планируется — им распоряжается performance, здесь только факт. Креативы оцениваются по цене
         квала, доле игнора и квалам; продажи и ROAS на уровне объявления — серым (решения — на уровне кампании и
-        группы). Меньше {minQuals} квалов — «мало данных». Аналитика контента и органики появится рядом с Performance.
+        группы). Меньше {minQuals} квалов — «мало данных». Сначала — работающие кампании, внутри — по расходу; статус
+        из Meta обновляется раз в час. Нажмите на объявление, чтобы посмотреть креатив.
       </p>
 
       <CycleBlock

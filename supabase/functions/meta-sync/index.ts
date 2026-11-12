@@ -187,6 +187,54 @@ async function syncAccount(db: SupabaseClient, all: ReturnType<typeof meta>, cfg
   return { account, rows: rows.length, campaigns: camps.size, ads: ads.size, usd: Math.round(stats.reduce((a, s) => a + s.spend_usd, 0)) }
 }
 
+// Статусы (effective_status) и креативы — для всех сущностей кабинета, что уже
+// есть в хабе. Отсутствующие в ответе Meta (удалённые/в архиве) → ARCHIVED.
+const CREATIVE = 'creative.thumbnail_width(600).thumbnail_height(600){thumbnail_url,image_url,instagram_permalink_url}'
+async function syncStatuses(db: SupabaseClient, all: ReturnType<typeof meta>, account: string) {
+  const known: any[] = []
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db
+      .from('ad_entities')
+      .select('external_id, level, name')
+      .eq('cabinet', 'meta')
+      .eq('account_id', account)
+      .range(from, from + 999)
+    if (error) throw new Error(`ad_entities: ${error.message}`)
+    known.push(...(data ?? []))
+    if ((data ?? []).length < 1000) break
+  }
+  if (!known.length) return { account, statuses: 0 }
+
+  const [camps, sets, ads] = await Promise.all([
+    all(`${account}/campaigns`, { fields: 'id,effective_status', limit: 500 }),
+    all(`${account}/adsets`, { fields: 'id,effective_status', limit: 500 }),
+    all(`${account}/ads`, { fields: `id,effective_status,preview_shareable_link,${CREATIVE}`, limit: 200 }),
+  ])
+  const byId = new Map<string, any>()
+  for (const x of [...camps, ...sets, ...ads]) byId.set(x.id, x)
+  const now = new Date().toISOString()
+  const list = known.map((e) => {
+    const x = byId.get(e.external_id)
+    const row: any = { cabinet: 'meta', external_id: e.external_id, level: e.level, name: e.name, status: x?.effective_status ?? 'ARCHIVED', status_at: now }
+    if (e.level === 'ad' && x) {
+      row.thumbnail_url = x.creative?.image_url ?? x.creative?.thumbnail_url ?? null
+      row.permalink = x.creative?.instagram_permalink_url ?? null
+      row.preview_url = x.preview_shareable_link ?? null
+    }
+    return row
+  })
+  // Upsert требует одинаковых ключей во всех строках — объявления отдельно.
+  const ad = list.filter((r) => 'thumbnail_url' in r)
+  const rest = list.filter((r) => !('thumbnail_url' in r))
+  for (const part of [ad, rest]) {
+    for (let i = 0; i < part.length; i += 500) {
+      const { error } = await db.from('ad_entities').upsert(part.slice(i, i + 500), { onConflict: 'cabinet,external_id' })
+      if (error) throw new Error(`ad status: ${error.message}`)
+    }
+  }
+  return { account, statuses: list.length, active: list.filter((r) => r.status === 'ACTIVE').length }
+}
+
 // ------------------------------------------------------------------ handler
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'method' }, 405)
@@ -216,7 +264,11 @@ Deno.serve(async (req) => {
     ])
     const ctx = { brands, sources, converters }
     const results = []
-    for (const a of accounts) results.push(await syncAccount(db, all, cfg, ctx, a, from, to))
+    for (const a of accounts) {
+      const r: any = await syncAccount(db, all, cfg, ctx, a, from, to)
+      if (mode !== 'range' || body.statuses) r.status = await syncStatuses(db, all, a)
+      results.push(r)
+    }
     const stats = { mode, from, to, results }
     await db
       .from('integrations')

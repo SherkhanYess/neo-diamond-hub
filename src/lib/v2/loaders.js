@@ -90,15 +90,22 @@ export async function loadCommercePlans(month, { brandId = null, branchId = null
   return out
 }
 
-// Every ad entity of the brand (hierarchy for Performance).
+// Every ad entity of the brand (hierarchy for Performance). Постранично: их > 1000.
 export async function loadAdEntities(brandId) {
-  let q = supabase
-    .from('ad_entities')
-    .select('id, parent_id, level, cabinet, name, external_id, brand_id, demand_source_id, converter_id')
-  if (brandId) q = q.eq('brand_id', brandId)
-  const { data, error } = await q
-  if (error) throw error
-  return data ?? []
+  const out = []
+  for (let from = 0; ; from += 1000) {
+    let q = supabase
+      .from('ad_entities')
+      .select('id, parent_id, level, cabinet, name, external_id, brand_id, demand_source_id, converter_id, status, thumbnail_url, permalink, preview_url')
+      .order('id')
+      .range(from, from + 999)
+    if (brandId) q = q.eq('brand_id', brandId)
+    const { data, error } = await q
+    if (error) throw error
+    out.push(...(data ?? []))
+    if ((data ?? []).length < 1000) break
+  }
+  return out
 }
 
 export async function loadDictionaries(brandId) {

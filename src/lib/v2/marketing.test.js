@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { sourceCards, converterFunnels, performanceTree } from './marketing'
+import { sourceCards, converterFunnels, performanceTree, adStatus } from './marketing'
 import { spendIndex } from './metrics'
 
 const B = 'nd'
@@ -98,5 +98,35 @@ describe('performanceTree', () => {
   })
   it('collects campaign leads without a known ad as «Без объявления»', () => {
     expect(noAd.leads).toBe(1)
+  })
+})
+
+describe('статусы РК в Performance', () => {
+  const ents = [
+    { id: 'off', level: 'campaign', parent_id: null, external_id: 'c-off', status: 'PAUSED' },
+    { id: 'idle', level: 'campaign', parent_id: null, external_id: 'c-idle', status: 'ARCHIVED' },
+    { id: 'on', level: 'campaign', parent_id: null, external_id: 'c-on', status: 'ACTIVE' },
+    { id: 'g-off', level: 'group', parent_id: 'off', external_id: 'g-off', status: 'CAMPAIGN_PAUSED' },
+    { id: 'a-off', level: 'ad', parent_id: 'g-off', external_id: '1', status: 'CAMPAIGN_PAUSED' },
+    { id: 'g-on', level: 'group', parent_id: 'on', external_id: 'g-on', status: 'ACTIVE' },
+    { id: 'a-on', level: 'ad', parent_id: 'g-on', external_id: '2', status: 'ACTIVE' },
+  ]
+  const stats = [
+    { ad_entity_id: 'a-off', spend: 900, impressions: 0, clicks: 0 },
+    { ad_entity_id: 'a-on', spend: 100, impressions: 0, clicks: 0 },
+  ]
+  const t = performanceTree({ entities: ents, stats, deals: [], events: [], stages })
+  it('работающие — первыми, даже с меньшим расходом', () => {
+    expect(t.campaigns.map((c) => c.entity.id)).toEqual(['on', 'off', 'idle'])
+  })
+  it('отключённые без расхода и лидов — «без активности»', () => {
+    expect(t.campaigns.map((c) => c.idle)).toEqual([false, false, true])
+    expect(t.idle).toBe(1)
+  })
+  it('коды Meta → работает / отключена / ошибка', () => {
+    expect(adStatus('ACTIVE').key).toBe('active')
+    expect(adStatus('ADSET_PAUSED').key).toBe('off')
+    expect(adStatus('DISAPPROVED').key).toBe('issue')
+    expect(adStatus(null)).toMatchObject({ key: 'off', unknown: true })
   })
 })
