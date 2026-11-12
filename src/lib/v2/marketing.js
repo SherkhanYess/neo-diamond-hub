@@ -189,9 +189,9 @@ export function performanceTree({ entities, stats, deals, events, stages, minQua
   return { campaigns, idle: campaigns.filter((c) => c.idle).length, noAd: noAd.length ? funnelOf(noAd, reached, stages) : null }
 }
 
-// Переходы в профиль: всего по статистике Instagram и сколько из них пришло из
-// других воронок (реклама — из Meta; сайт/гайд — пока н/д). Остальное — органика.
-export function profileVisitsBlock({ total, rows }) {
+// Переходы в профиль: всего по статистике Instagram, из рекламы других воронок
+// (нажали на аватарку вместо кнопки), из РК на профиль; остальное — органика.
+export function profileVisitsBlock({ total, rows, ownAds = 0 }) {
   const others = rows
     .filter((r) => r.converter.entry_source !== 'instagram')
     .map((r) => ({ converter: r.converter, visits: r.profile_visits }))
@@ -201,7 +201,8 @@ export function profileVisitsBlock({ total, rows }) {
     total,
     others,
     fromOthers: known,
-    organic: total == null ? null : Math.max(0, total - known),
+    ownAds,
+    organic: total == null ? null : Math.max(0, total - known - ownAds),
     leads: profile?.leads ?? null,
     cr: total ? div(profile?.leads ?? 0, total) : null,
   }

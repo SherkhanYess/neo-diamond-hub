@@ -19,7 +19,7 @@ import './Marketing.css'
 const CONVERTER_COLS = [
   { key: 'entry', label: 'Клики', fmt: 'int', hint: 'Профиль — переходы в профиль Instagram; реклама — клики по ссылке; сайт — сессии' },
   { key: 'cr_entry_lead', label: 'Клик → заявка', fmt: 'pct' },
-  { key: 'profile_visits', label: 'В профиль', fmt: 'int', hint: 'Не нажали кнопку воронки, а перешли в профиль Instagram (нажали на аккаунт)' },
+  { key: 'profile_visits', label: 'В профиль', fmt: 'int', hint: 'Из рекламы воронки: нажали на аватарку аккаунта вместо кнопки (WhatsApp, «Перейти на сайт»)' },
   { key: 'leads', label: 'Заявки', fmt: 'int', hint: 'Уникальные: первая заявка клиента' },
   { key: 'repeats', label: 'Повторные', fmt: 'int', hint: 'Клиент уже оставлял заявку раньше — не новая заявка, но продажа засчитывается' },
   { key: 'cr_lead_qual', label: 'Заявка → квал', fmt: 'pct' },
@@ -130,9 +130,14 @@ function ProfileVisits({ block }) {
           </ul>
         </div>
         <div className="pv__card">
+          <span className="pv__label">Реклама на профиль</span>
+          <b className="pv__value mono">{v(block.ownAds)}</b>
+          <span className="pv__sub">РК с целью «посещения профиля»</span>
+        </div>
+        <div className="pv__card">
           <span className="pv__label">Органика</span>
           <b className="pv__value mono">{v(block.organic)}</b>
-          <span className="pv__sub">bio, сторис, посты, рекомендации — всё, кроме других воронок</span>
+          <span className="pv__sub">посты, reels, сторис, поиск, рекомендации — без рекламы</span>
         </div>
         <div className="pv__card">
           <span className="pv__label">Заявки с профиля</span>
@@ -141,8 +146,8 @@ function ProfileVisits({ block }) {
         </div>
       </div>
       <p className="v2__note">
-        Переходы из рекламы — из Meta (нажали на аккаунт в объявлении). Сайт-каталог и гайд-каталог — «н/д»: сайт пока не
-        передаёт клики по ссылке на Instagram, после доработки сайта цифры появятся здесь сами.
+        Переходы из других воронок — из Meta: человек увидел рекламу с кнопкой WhatsApp или «Перейти на сайт», но нажал на
+        аватарку аккаунта и попал в профиль. «н/д» — у воронки за период не было рекламы. Органика — всё остальное.
       </p>
     </section>
   )
@@ -269,13 +274,13 @@ export default function SourcePage() {
     return cards[0]
   }, [source, deals, d.events, d.plans, d.spend, d.spendBrands, d.stages])
 
-  // Переходы в профиль из рекламных воронок — из Meta, по конвертеру объявления.
+  // Переходы в профиль из рекламы (нажали на аватарку, а не на кнопку объявления) —
+  // из Meta, по конвертеру объявления: WhatsApp, сайт, гайд, а у «Профиля» — РК на профиль.
   const profileVisits = useMemo(() => {
     const m = new Map()
-    for (const c of converters) {
-      if (c.entry_source !== 'ads') continue
-      const rows = d.adStats.filter((r) => r.converter_id === c.id)
-      if (rows.length) m.set(c.id, rows.reduce((a, r) => a + (r.profile_visits || 0), 0))
+    for (const r of d.adStats) {
+      if (!r.converter_id || !converters.some((c) => c.id === r.converter_id)) continue
+      m.set(r.converter_id, (m.get(r.converter_id) || 0) + (r.profile_visits || 0))
     }
     return m
   }, [converters, d.adStats])
@@ -297,8 +302,10 @@ export default function SourcePage() {
   )
   const profileBlock = useMemo(() => {
     const prof = converters.find((c) => c.entry_source === 'instagram')
-    return prof ? profileVisitsBlock({ total: entries.get(prof.id) ?? null, rows: funnels.rows }) : null
-  }, [converters, entries, funnels.rows])
+    return prof
+      ? profileVisitsBlock({ total: entries.get(prof.id) ?? null, rows: funnels.rows, ownAds: profileVisits.get(prof.id) ?? 0 })
+      : null
+  }, [converters, entries, funnels.rows, profileVisits])
 
   const perf = useMemo(() => {
     const ids = new Set(entities.map((e) => e.id))

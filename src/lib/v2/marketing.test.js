@@ -151,9 +151,10 @@ describe('переходы в профиль и CPM', () => {
     expect(by.prof.profile_visits).toBeNull()
   })
   it('блок профиля: всего, из других воронок, органика', () => {
-    const b = profileVisitsBlock({ total: 1000, rows: f.rows })
+    const b = profileVisitsBlock({ total: 1000, rows: f.rows, ownAds: 300 })
     expect(b.fromOthers).toBe(120)
-    expect(b.organic).toBe(880)
+    expect(b.ownAds).toBe(300)
+    expect(b.organic).toBe(580)
     expect(b.leads).toBe(1)
     expect(b.others.map((o) => o.converter.id)).toEqual(['ads', 'site'])
   })
