@@ -19,6 +19,8 @@ export default function UnitPage() {
   const { unitId } = useParams()
   const filters = useSalesFilters()
   const d = useSalesData(filters.value)
+  // Хуки — до ранних return (иначе React падает после загрузки).
+  const [basis, setBasis] = useState('stage')
 
   const unit = d.units.find((u) => u.id === unitId)
   const memberIds = useMemo(() => d.members.filter((m) => m.unit_id === unitId).map((m) => m.profile_id), [d.members, unitId])
@@ -48,7 +50,6 @@ export default function UnitPage() {
   }
 
   const pace = periodPace(filters.value.period)
-  const [basis, setBasis] = useState('stage')
   const metrics = (unit.kpi?.length ? unit.kpi : ['leads', 'held', 'sales']).filter((k) => SALES_METRICS[k])
   const kpis = metrics.map((k) => ({
     key: k,
