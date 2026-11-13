@@ -56,7 +56,9 @@ describe('validate', () => {
 describe('поля сделки', () => {
   const lead = validate(hint).lead
   it('название', () => {
-    expect(leadName(lead)).toBe('Намек с сайта +77011234567')
+    expect(leadName(12542893)).toBe('Намек с сайта 12542893')
+    expect(leadName()).toBe('Намек с сайта')
+    expect(leadPayload(lead, 1).name).toBe('Намек с сайта')
   })
   it('код, UTM как у WhatsApp, источник «Сайт», город, повод', () => {
     const cf = Object.fromEntries(leadFields(lead).map((f) => [f.field_id, f.values[0].value ?? f.values[0].enum_id]))

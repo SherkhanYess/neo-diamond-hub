@@ -11,7 +11,7 @@
 // Вебхук amocrm-hook такую сделку пропускает: в поле кода уже только код.
 // Источник и конвертер дальше считает amocrm-sync по UTM, как у всех сделок.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { validate, leadPayload, contactPayload, leadNote, samePhone } from '../_shared/siteLead.js'
+import { validate, leadPayload, leadName, contactPayload, leadNote, samePhone } from '../_shared/siteLead.js'
 
 const PIPELINE = 9907362 // Первичная продажа; этап — первый после «Неразобранного»
 const cors = {
@@ -118,6 +118,11 @@ Deno.serve(async (req) => {
     const l = await call('POST', 'leads', [leadPayload(lead, contactId, PIPELINE)])
     const leadId = l?._embedded?.leads?.[0]?.id
     if (!leadId) throw new Error('lead not created')
+    try {
+      await call('PATCH', `leads/${leadId}`, { name: leadName(leadId) })
+    } catch (e) {
+      console.error(`rename ${leadId}: ${(e as Error).message}`)
+    }
 
     const note = leadNote(lead)
     if (note) {

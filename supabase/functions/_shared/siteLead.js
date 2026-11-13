@@ -80,9 +80,13 @@ export function validate(body) {
   }
 }
 
-/** Название сделки: «Намек с сайта +77771234567» (так решил владелец, «Намек» через «е»). */
-export function leadName(lead) {
-  return `Намек с сайта ${lead.phone}`
+/**
+ * Название сделки: «Намек с сайта 12542893» — номер самой сделки amoCRM (решение
+ * владельца, «Намек» через «е»). Номер известен только после создания: сделка
+ * создаётся с именем без номера, затем имя дописывается PATCH-ем.
+ */
+export function leadName(leadId = null) {
+  return leadId ? `Намек с сайта ${leadId}` : 'Намек с сайта'
 }
 
 /** Поля новой сделки: код, UTM, «Источник лида», город, повод. */
@@ -114,7 +118,7 @@ export function leadNote(lead) {
 /** Тело POST /leads. contactId — найденный или созданный контакт. */
 export function leadPayload(lead, contactId, pipelineId = null) {
   const out = {
-    name: leadName(lead),
+    name: leadName(),
     custom_fields_values: leadFields(lead),
     _embedded: {
       contacts: [{ id: contactId }],
