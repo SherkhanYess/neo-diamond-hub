@@ -287,7 +287,9 @@ export function mapLead(lead: Lead, evs: any[], cfg: Cfg, ctx: Ctx) {
     ? ctx.sources.find((s: any) => s.brand_id === brand.id && norm(s.name) === norm(directName))
     : null
 
-  const taskName = cfg.occasion_task?.[fieldEnum(lead, F.occasion) ?? '']
+  // У бренда с одной задачей (taena — только предложение) задача фиксирована,
+  // повод в amoCRM её не меняет: cfg.brand_task = { taena: 'Сделать предложение' }.
+  const taskName = cfg.brand_task?.[brand.slug] ?? cfg.occasion_task?.[fieldEnum(lead, F.occasion) ?? '']
   const task = taskName ? ctx.tasks.find((t: any) => t.brand_id === brand.id && norm(t.name) === norm(taskName)) : null
   const branchName = cfg.city_branch?.[fieldEnum(lead, F.city) ?? '']
   const branch = branchName ? ctx.branches.find((b: any) => norm(b.name) === norm(branchName)) : null
