@@ -80,9 +80,9 @@ export function validate(body) {
   }
 }
 
-/** Название сделки: «Намёк — Sirius Luxe · 1 ct · белое золото — Ержан». */
+/** Название сделки: «Намек с сайта +77771234567» (так решил владелец, «Намек» через «е»). */
 export function leadName(lead) {
-  return [LEAD_TYPES[lead.type].label, lead.ring, lead.name].filter(Boolean).join(' — ').slice(0, 250)
+  return `Намек с сайта ${lead.phone}`
 }
 
 /** Поля новой сделки: код, UTM, «Источник лида», город, повод. */
