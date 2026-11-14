@@ -287,9 +287,12 @@ export function mapLead(lead: Lead, evs: any[], cfg: Cfg, ctx: Ctx) {
     ? ctx.sources.find((s: any) => s.brand_id === brand.id && norm(s.name) === norm(directName))
     : null
 
-  // У бренда с одной задачей (taena — только предложение) задача фиксирована,
-  // повод в amoCRM её не меняет: cfg.brand_task = { taena: 'Сделать предложение' }.
-  const taskName = cfg.brand_task?.[brand.slug] ?? cfg.occasion_task?.[fieldEnum(lead, F.occasion) ?? '']
+  // Задача клиента ставится, только когда менеджер заполнил «Повод покупки»:
+  // заполненная задача = квал-лид (metrics.js), поэтому без повода задачи нет.
+  // У бренда с одной задачей (taena — только предложение) любой повод даёт её:
+  // cfg.brand_task = { taena: 'Сделать предложение' }.
+  const occasion = fieldEnum(lead, F.occasion)
+  const taskName = occasion ? cfg.brand_task?.[brand.slug] ?? cfg.occasion_task?.[occasion] : null
   const task = taskName ? ctx.tasks.find((t: any) => t.brand_id === brand.id && norm(t.name) === norm(taskName)) : null
   const branchName = cfg.city_branch?.[fieldEnum(lead, F.city) ?? '']
   const branch = branchName ? ctx.branches.find((b: any) => norm(b.name) === norm(branchName)) : null
