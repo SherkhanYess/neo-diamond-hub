@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient'
-import { fetchAll } from '../api/paging'
+import { fetchAll, byBranch } from '../api/paging'
 import { loadCohort } from '../api/reports'
 import { listRef } from '../api/references'
 import { monthPeriod, periodBounds, periodMonths, scalePlan } from './period'
@@ -78,7 +78,7 @@ export async function loadCommercePlans(month, { brandId = null, branchId = null
       .eq('status', 'approved')
       .order('version', { ascending: false })
     if (brandId) q = q.eq('brand_id', brandId)
-    if (branchId) q = q.eq('branch_id', branchId)
+    q = byBranch(q, branchId)
     const { data, error } = await q
     if (error) throw error
     const latest = new Map()
@@ -264,7 +264,7 @@ export async function loadClosedSales(period, { brandId = null, branchId = null 
       .lt('sale_at', end)
       .order('sale_at', { ascending: true })
     if (brandId) q = q.eq('brand_id', brandId)
-    if (branchId) q = q.eq('branch_id', branchId)
+    q = byBranch(q, branchId)
     return q
   })
 }

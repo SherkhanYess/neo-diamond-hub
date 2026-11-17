@@ -72,7 +72,7 @@ export function dealSums(deal, reached, stages) {
   return {
     ...emptySums(),
     leads: uniq ? 1 : 0,
-    quals: uniq && (r.has(stages.qual) || deal.client_task_id) ? 1 : 0,
+    quals: uniq && r.has(stages.qual) ? 1 : 0,
     meetings: uniq && r.has(stages.held) ? 1 : 0,
     repeats: uniq ? 0 : 1,
     sales: won ? 1 : 0,

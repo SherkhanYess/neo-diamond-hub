@@ -64,7 +64,7 @@ export function counts(deals, reached, stages) {
       c.repeats++
     } else {
       c.leads++
-      if (r.has(stages.qual) || d.client_task_id) c.quals++
+      if (r.has(stages.qual)) c.quals++
       if (r.has(stages.set)) c.set++
       if (r.has(stages.held)) c.held++
     }

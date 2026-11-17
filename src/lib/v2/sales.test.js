@@ -92,3 +92,19 @@ describe('helpers', () => {
     expect(byBrand.find((r) => r.key === 'nd').sales).toBe(2)
   })
 })
+
+describe('квал-лид', () => {
+  it('только по этапу квалификации: заполненный повод (задача) без этапа — не квал', async () => {
+    const { counts } = await import('./sales')
+    const stages = { qual: 'q', set: 's', held: 'h' }
+    const deals = [
+      { id: 1, is_unique: true, client_task_id: 't' },
+      { id: 2, is_unique: true, client_task_id: null },
+      { id: 3, is_unique: true, client_task_id: 't' },
+    ]
+    const reached = new Map([[2, new Set(['q'])]])
+    const c = counts(deals, reached, stages)
+    expect(c.leads).toBe(3)
+    expect(c.quals).toBe(1)
+  })
+})

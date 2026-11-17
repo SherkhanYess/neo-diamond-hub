@@ -10,3 +10,12 @@ export async function fetchAll(build, pageSize = 1000) {
   }
   return out
 }
+
+/** Значение фильтра «Без филиала»: сделки, где город заказа не указан. */
+export const NO_BRANCH = 'none'
+
+/** Фильтр по филиалу: пусто — все, NO_BRANCH — без филиала, иначе — филиал. */
+export function byBranch(q, branchId) {
+  if (!branchId) return q
+  return branchId === NO_BRANCH ? q.is('branch_id', null) : q.eq('branch_id', branchId)
+}

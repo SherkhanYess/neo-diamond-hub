@@ -1,4 +1,5 @@
 import PeriodPicker from '../v2/PeriodPicker'
+import { NO_BRANCH } from '../../lib/api/paging'
 import '../v2/v2.css'
 
 // Отдел продаж filters: brand is a slice here (both brands share the team).
@@ -30,6 +31,7 @@ export default function SalesFilters({ value, onChange, brands, branches }) {
               {b.name}
             </option>
           ))}
+          <option value={NO_BRANCH}>Без филиала (город не указан)</option>
         </select>
       </label>
     </div>

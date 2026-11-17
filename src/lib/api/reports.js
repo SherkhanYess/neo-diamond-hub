@@ -1,5 +1,5 @@
 import { supabase } from '../supabaseClient'
-import { fetchAll } from './paging'
+import { fetchAll, byBranch } from './paging'
 
 import { monthPeriod, periodBounds } from '../v2/period'
 
@@ -22,7 +22,7 @@ export async function loadCohort(branchId, month, brandId = null) {
       .gte('created_at', start)
       .lt('created_at', end)
       .order('created_at', { ascending: true })
-    if (branchId) q = q.eq('branch_id', branchId)
+    q = byBranch(q, branchId)
     if (brandId) q = q.eq('brand_id', brandId)
     return q
   })

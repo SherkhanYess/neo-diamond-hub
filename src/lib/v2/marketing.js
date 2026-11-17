@@ -45,7 +45,7 @@ export function funnelOf(deals, reached, stages) {
       continue
     }
     leads++
-    if (r.has(stages.qual) || d.client_task_id) quals++
+    if (r.has(stages.qual)) quals++
     if (r.has(stages.set)) set++
     if (r.has(stages.held)) held++
     if (d.is_ignored) ignored++
