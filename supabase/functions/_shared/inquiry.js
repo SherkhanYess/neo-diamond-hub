@@ -10,9 +10,10 @@
 //   2. код сайта taena v2            [T·ib-ОБ·g], [T·ia:7fq2m-ПР·m]
 //   3. код профиля                   [T·ib], [N·is]
 //   4. старый код сайта taena        [К-ПР·vitrina], [П-ОБ]
-//   5. текст 2ГИС                    «Пишу из приложения 2ГИС»
-//   6. Директ без кода               канал instagram_business
-//   7. остальное                     WhatsApp без источника
+//   5. шаблон сайта taena без кода   «Понравилось кольцо … Подскажите по наличию» → [T·nk-ОБ·o]
+//   6. текст 2ГИС                    «Пишу из приложения 2ГИС»
+//   7. Директ без кода               канал instagram_business
+//   8. остальное                     WhatsApp без источника
 // Формат кодов — docs/tz/2026-11-11-taena-lead-code-v2.md.
 
 /** Тип обращения в коде → ключ. */
@@ -34,6 +35,7 @@ export const ENTRIES = {
   ht: { source: 'none', medium: 'hint', label: 'Ссылка-намёк' },
   sh: { source: 'none', medium: 'share', label: 'Поделились ссылкой' },
   dd: { source: 'none', medium: 'direct', label: 'Прямой заход' },
+  nk: { source: 'none', medium: 'nocode', label: 'Сайт, код стёрт' },
   xx: { source: 'none', medium: 'other', label: 'Другие метки' },
 }
 
@@ -46,6 +48,19 @@ const V2_RE = new RegExp(`\\[([TN])[·.]([a-z]{2})(?::([0-9a-z]{5}))?(?:-${TYPE_
 const OLD_RE = new RegExp(`\\[([КПГС])-${TYPE_RE}(?:·([^\\]\\s]{1,60}))?\\]`)
 const AD_RE = /(?:ad_id\s*[:=]?\s*|\[ad·)(\d{6,})/i
 const GIS_RE = /2\s*(гис|gis)/i
+
+// Тексты, которые сайт taena подставляет в WhatsApp (src/catalog/lib/waMessage.js
+// в neo-diamond-lenta). Человек иногда стирает код и отправляет только текст —
+// тогда понятно, что он с сайта, но не откуда пришёл на сайт: вход «nk».
+// Порядок важен: «Мне показали кольцо» проверяем раньше общего «кольцо».
+const SITE_TEMPLATES = [
+  ['НМ', /мне показали кольцо.{0,80}подскажите стоимость/i],
+  ['ОБ', /понравилось кольцо.{0,160}подскажите по наличию/i],
+  ['ОБ', /хочу узнать про помолвочные кольца\.?\s*шоурум/i],
+  ['ПР', /хотим примерить.{0,80}в шоуруме/i],
+  ['ПД', /выбираем помолвочное кольцо и не знаем, какое подо[йи]д[её]т/i],
+  ['ИД', /хочу кольцо по своему дизайну/i],
+]
 
 /** Короткий номер объявления: 5 знаков base36 из номера Meta. */
 export function adShort(adId) {
@@ -134,6 +149,21 @@ export function parseInquiry(text, channel = null) {
         utm_content: entry,
         ...(campaign ? { utm_campaign: campaign } : {}),
       },
+    }
+  }
+
+  const tpl = SITE_TEMPLATES.find(([, re]) => re.test(s))
+  if (tpl) {
+    const typeCode = tpl[0]
+    return {
+      ...base,
+      kind: 'site',
+      code: `[T·nk-${typeCode}·o]`,
+      brand: 'taena',
+      entry: 'nk',
+      type: TYPES[typeCode],
+      page: 'other',
+      utm: { utm_source: 'none', utm_medium: 'site', utm_campaign: 'other', utm_content: 'nk' },
     }
   }
 

@@ -87,3 +87,30 @@ describe('helpers', () => {
     expect(channelOf(null)).toBeNull()
   })
 })
+
+describe('шаблон сайта taena без кода', () => {
+  it('код стёрт — узнаём сайт по тексту (сделка 12544769)', () => {
+    const r = parseInquiry('Здравствуйте! Понравилось кольцо Sirius Овал, 1 ct, Белое золото 585. Подскажите по наличию и деталям?', 'whatsapp')
+    expect(r).toMatchObject({ kind: 'site', code: '[T·nk-ОБ·o]', brand: 'taena', entry: 'nk', type: 'price' })
+    expect(r.utm).toEqual({ utm_source: 'none', utm_medium: 'site', utm_campaign: 'other', utm_content: 'nk' })
+    expect(attributable(r.kind)).toBe(true)
+    expect(isCodeOnly(r.code)).toBe(true)
+  })
+  it('все шаблоны сайта', () => {
+    const cases = [
+      ['Здравствуйте! Хочу узнать про помолвочные кольца. Шоурум Алматы.', '[T·nk-ОБ·o]'],
+      ['Здравствуйте! Хотим примерить Neo Halo Круглый в шоуруме в Астане. Когда можно приехать?', '[T·nk-ПР·o]'],
+      ['Здравствуйте! Выбираем помолвочное кольцо и не знаем, какое подойдёт. Поможете?', '[T·nk-ПД·o]'],
+      ['Здравствуйте! Хочу кольцо по своему дизайну. Можно обсудить идею?', '[T·nk-ИД·o]'],
+      ['Здравствуйте! Мне показали кольцо Halo Груша. Подскажите стоимость и как узнать размер?', '[T·nk-НМ·o]'],
+    ]
+    for (const [text, code] of cases) expect(parseInquiry(text, 'whatsapp').code).toBe(code)
+  })
+  it('код есть — побеждает код, в том числе на отдельной строке', () => {
+    const r = parseInquiry('Здравствуйте! Понравилось кольцо Sirius Овал. Подскажите по наличию и деталям?\n\nИндивидуальный код: [T·ib-ОБ·m]', 'whatsapp')
+    expect(r).toMatchObject({ code: '[T·ib-ОБ·m]', entry: 'ib', page: 'model' })
+  })
+  it('обычный вопрос про кольцо — не сайт', () => {
+    expect(parseInquiry('Здравствуйте, сколько стоит кольцо с бриллиантом?', 'whatsapp').kind).toBe('none')
+  })
+})
