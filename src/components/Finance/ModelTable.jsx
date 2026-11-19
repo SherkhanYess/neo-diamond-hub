@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { money } from '../../lib/format'
 
-const nf = (v, d = 0) => (Number.isFinite(v) ? Number(v).toLocaleString('ru-RU', { maximumFractionDigits: d }).replace(/,/g, ' ') : '')
+const nf = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v).toLocaleString('ru-RU', { maximumFractionDigits: d }) : '')
 const pc = (v) => (Number.isFinite(v) && v ? `${(v * 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 })}%` : '')
 const parse = (s) => {
   const v = Number(String(s).replace(/\s/g, '').replace(',', '.'))
