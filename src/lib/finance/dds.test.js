@@ -52,3 +52,16 @@ describe('ДДС по фондам — эталон сентября 2026 (ТЗ,
     expect(item('dividends.dividends').prior).toBeGreaterThan(11000000)
   })
 })
+
+describe('поступление без сделки и возврат на ту же сумму', () => {
+  const mk = (o) => ({ id: 1, date: '2026-10-28', related_date: null, type: 1, amount: 0, amount_kzt: 1740000, account_id: 242477, category_id: 1469454,
+    project_id: null, project_type: null, project_name: null, is_transfer: false, description: 'Султан', contractor: null, ...o })
+  const txs = [mk({}), mk({ id: 2, date: '2026-10-29', type: 2, category_id: 1469483, description: null }), mk({ id: 3, date: '2026-10-05', amount_kzt: 50000, description: 'Голд Жанар' })]
+  const d = buildDds({ month: '2026-10', txs, R, opening: 1000000 })
+  it('гасят друг друга: не выручка и не возврат, видны отдельной строкой', () => {
+    expect(d.totals.incomeGross).toBe(50000)
+    expect(d.totals.refunds).toBe(0)
+    expect(d.rows.find((r) => r.key === 'paired').pairs).toBe(1)
+    expect(d.totals.closing).toBe(1050000)
+  })
+})

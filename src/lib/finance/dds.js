@@ -46,6 +46,7 @@ export function buildDds({ month, txs, R, opening = 0 }) {
   const refunds = mkRow('refunds', 'возвраты клиентам', 2)
   const fx = mkRow('fx', 'Курсовые разницы при переводах между счетами', 1)
   const excluded = mkRow('excluded', 'Исключено из учёта (статуэтка)', 1)
+  const paired = mkRow('paired', 'Поступление и возврат на ту же сумму (взаимозачёт)', 1, { pairs: 0 })
   const unassignedRow = mkRow('unassigned', 'Не распределено', 1, { items: [] })
 
   const fundRows = new Map()
@@ -59,15 +60,33 @@ export function buildDds({ month, txs, R, opening = 0 }) {
     fr.items.push(ir)
   }
 
+  // Поступление без сделки + возврат на ту же сумму в пределах 7 дней (решение владельца):
+  // деньги вернули — это не выручка и не возврат по продаже. Пара видна отдельной строкой.
+  const pairedIds = new Set()
+  const pre = list.map((t) => ({ t, c: classify(t, R, { okladUsed: new Map() }) }))
+  const loose = pre.filter(({ t, c }) => c.kind === 'income' && !t.project_type)
+  const backs = pre.filter(({ c }) => c.kind === 'refund')
+  const dayDiff = (a, b) => Math.abs(new Date(a) - new Date(b)) / 86400000
+  for (const inc of loose) {
+    const back = backs.find(({ t, c }) => !pairedIds.has(t.id) && Math.abs(c.amount - inc.c.amount) < 1 && dayDiff(t.date, inc.t.date) <= 7)
+    if (back) {
+      pairedIds.add(inc.t.id)
+      pairedIds.add(back.t.id)
+      paired.pairs += 1
+    }
+  }
+
   const ctx = { okladUsed: new Map() }
   const unassigned = []
   const ops = []
   for (const t of list) {
-    const c = classify(t, R, ctx)
+    const c0 = classify(t, R, ctx)
+    const c = pairedIds.has(t.id) ? { ...c0, kind: 'paired' } : c0
     const day = String(t.date).slice(0, 10)
     const v = c.amount
     ops.push({ t, c })
     if (c.kind === 'excluded') add(excluded, day, Number(t.type) === 1 ? v : -v)
+    else if (c.kind === 'paired') add(paired, day, Number(t.type) === 1 ? v : -v)
     else if (c.kind === 'transfer') add(fx, day, Number(t.type) === 1 ? v : -v)
     else if (c.kind === 'acquiring') add(acquiring, day, v)
     else if (c.kind === 'refund') add(refunds, day, v)
@@ -107,7 +126,7 @@ export function buildDds({ month, txs, R, opening = 0 }) {
     add(payments, day, pay)
     add(net, day, incN - pay)
     open.byDay[day] = Math.round(bal * 100) / 100
-    bal += incN - pay + (fx.byDay[day] ?? 0) + (excluded.byDay[day] ?? 0)
+    bal += incN - pay + (fx.byDay[day] ?? 0) + (excluded.byDay[day] ?? 0) + (paired.byDay[day] ?? 0)
     close.byDay[day] = Math.round(bal * 100) / 100
   }
   open.total = Number(opening)
@@ -129,6 +148,7 @@ export function buildDds({ month, txs, R, opening = 0 }) {
     unassignedRow,
     net,
     fx,
+    paired,
     excluded,
     close,
   ]

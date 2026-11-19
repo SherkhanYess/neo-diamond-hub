@@ -29,11 +29,12 @@ function opsFor(dds, row, day) {
     refunds: (c) => c.kind === 'refund',
     fx: (c) => c.kind === 'transfer',
     excluded: (c) => c.kind === 'excluded',
+    paired: (c) => c.kind === 'paired',
   }[k]
   return by ? pick((c) => (by(c) ? c.amount : null)) : []
 }
 
-const DRILL = new Set(['in:orders', 'in:stock', 'in:other', 'in:cash', 'in:bank', 'acquiring', 'refunds', 'fx', 'excluded', 'unassigned'])
+const DRILL = new Set(['in:orders', 'in:stock', 'in:other', 'in:cash', 'in:bank', 'acquiring', 'refunds', 'fx', 'paired', 'excluded', 'unassigned'])
 
 export default function DdsTable({ dds, refs }) {
   const navigate = useNavigate()
