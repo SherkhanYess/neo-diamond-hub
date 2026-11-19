@@ -8,6 +8,24 @@ import { listRef } from '../../lib/api/references'
 
 const EMPTY_NEW = { email: '', full_name: '', password: '', role_id: '', branch_ids: [] }
 
+/** Пароль для приглашения: 12 знаков без похожих букв (0/O, 1/l). */
+export function makePassword(len = 12) {
+  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
+  const buf = new Uint32Array(len)
+  crypto.getRandomValues(buf)
+  return Array.from(buf, (x) => abc[x % abc.length]).join('')
+}
+
+/** Текст приглашения: ссылка, логин, пароль. */
+export function inviteText({ origin, email, password, name, roleName }) {
+  return [
+    `${name ? `${name}, з` : 'З'}дравствуйте! Доступ к информационному центру Neo Diamond${roleName ? ` (${roleName})` : ''}:`,
+    `Ссылка: ${origin}`,
+    `Логин: ${email}`,
+    `Пароль: ${password}`,
+  ].join('\n')
+}
+
 export default function Users() {
   const { profile } = useSession()
   const actorId = profile?.id
@@ -19,6 +37,7 @@ export default function Users() {
   const [editBranches, setEditBranches] = useState([])
   const [creating, setCreating] = useState(null) // new-user form state or null
   const [newErr, setNewErr] = useState(null)
+  const [invite, setInvite] = useState(null) // текст приглашения после создания
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
@@ -64,6 +83,8 @@ export default function Users() {
         role_id: creating.role_id || null,
         branch_ids: creating.branch_ids,
       })
+      const roleName = roles.find((r) => r.id === creating.role_id)?.name ?? ''
+      setInvite(inviteText({ origin: window.location.origin, email: creating.email.trim(), password: creating.password, name: creating.full_name.trim(), roleName }))
       setCreating(null)
       await load()
       toast.show({ message: 'Пользователь создан.' })
@@ -120,7 +141,12 @@ export default function Users() {
             </div>
             <div className="field">
               <label>Пароль (не короче 8 символов)</label>
-              <input className="input" type="text" value={creating.password} onChange={(e) => setCreating((s) => ({ ...s, password: e.target.value }))} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input className="input" type="text" value={creating.password} onChange={(e) => setCreating((s) => ({ ...s, password: e.target.value }))} />
+                <button type="button" className="btn" onClick={() => setCreating((s) => ({ ...s, password: makePassword() }))}>
+                  Сгенерировать
+                </button>
+              </div>
             </div>
             <div className="field">
               <label>Роль</label>
@@ -210,6 +236,35 @@ export default function Users() {
               </button>
               <button className="btn btn--primary" onClick={saveEdit}>
                 Сохранить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {invite && (
+        <div className="confirm__backdrop" onClick={() => setInvite(null)}>
+          <div className="confirm" onClick={(e) => e.stopPropagation()}>
+            <h3 className="confirm__title">Отправьте приглашение</h3>
+            <p style={{ color: 'var(--ink-400)', fontSize: 13, margin: '0 0 8px' }}>
+              Пароль показывается только сейчас. Скопируйте и отправьте человеку лично (WhatsApp, Telegram).
+            </p>
+            <textarea className="input" readOnly rows={5} value={invite} style={{ width: '100%', fontFamily: 'inherit' }} onFocus={(e) => e.target.select()} />
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
+              <button
+                className="btn btn--primary"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(invite)
+                    toast.show({ message: 'Скопировано.' })
+                  } catch {
+                    toast.show({ message: 'Выделите текст и скопируйте вручную.' })
+                  }
+                }}
+              >
+                Скопировать
+              </button>
+              <button className="btn" onClick={() => setInvite(null)}>
+                Готово
               </button>
             </div>
           </div>
