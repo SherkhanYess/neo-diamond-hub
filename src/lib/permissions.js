@@ -12,6 +12,7 @@ export const CAPS = [
   { key: 'sales_all', label: 'Отдел продаж: весь' },
   { key: 'sales_unit', label: 'Отдел продаж: свой подотдел' },
   { key: 'sales_self', label: 'Отдел продаж: только себя' },
+  { key: 'finance', label: 'Финансы' },
 ]
 
 export const SALES_CAPS = ['view_reports', 'sales_all', 'sales_unit', 'sales_self']
@@ -39,6 +40,7 @@ export const MENU_ITEMS = [
   { key: 'marketing', label: 'Маркетинг', path: '/marketing', cap: 'view_reports' },
   { key: 'sales', label: 'Отдел продаж', path: '/sales', cap: SALES_CAPS },
   { key: 'planning', label: 'Планирование', path: '/planning', cap: ['edit_plan', 'approve_plan', 'sales_all'] },
+  { key: 'finance', label: 'Финансы', path: '/finance', cap: 'finance' },
   { key: 'decisions', label: 'Журнал решений', path: '/decisions', cap: 'decisions' },
   { key: 'reference', label: 'Справочник', path: '/reference', cap: 'view_reports' },
 ]
@@ -47,7 +49,13 @@ export const SETTINGS_ITEM = {
   key: 'settings',
   label: 'Настройки',
   path: '/settings',
-  cap: 'settings',
+  // С правом «Финансы» без «Настроек» виден только раздел привязки статей к фондам.
+  cap: ['settings', 'finance'],
+}
+
+/** Раздел настроек доступен: у раздела своё право (`cap`), по умолчанию — «Настройки». */
+export function canSettingsSection(caps, section) {
+  return can(caps, section.cap ?? 'settings')
 }
 
 export function visibleMenuItems(caps) {

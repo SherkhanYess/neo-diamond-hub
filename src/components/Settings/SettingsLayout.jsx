@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { useSession } from '../../context/SessionContext'
+import { canSettingsSection } from '../../lib/permissions'
+import FinanceRules from './FinanceRules'
 import CrudSection from './CrudSection'
 import Funnel from './Funnel'
 import Roles from './Roles'
@@ -59,6 +62,10 @@ const GROUPS = [
     ],
   },
   {
+    title: 'Финансы',
+    items: [{ key: 'fin_rules', label: 'Привязка статей к фондам', cap: 'finance', render: () => <FinanceRules /> }],
+  },
+  {
     title: 'Система',
     items: [
       { key: 'integrations', label: 'Интеграции', render: () => <Integrations /> },
@@ -68,17 +75,23 @@ const GROUPS = [
   },
 ]
 
-const ALL = GROUPS.flatMap((g) => g.items)
-
 export default function SettingsLayout() {
-  const [active, setActive] = useState('users')
+  const { caps } = useSession()
+  const groups = GROUPS.map((g) => ({ ...g, items: g.items.filter((s) => canSettingsSection(caps, s)) })).filter((g) => g.items.length)
+  const all = groups.flatMap((g) => g.items)
+  const [active, setActive] = useState(() => {
+    // Ссылка вида /settings#fin_rules открывает нужный раздел (из ДДС: «Не распределено»).
+    const h = typeof window !== 'undefined' ? window.location.hash.slice(1) : ''
+    return all.some((s) => s.key === h) ? h : all[0]?.key ?? 'users'
+  })
   const { isAll, currentBrand, brandId, reloadBrands } = useBrand()
-  const section = ALL.find((s) => s.key === active)
+  const section = all.find((s) => s.key === active) ?? all[0]
+  if (!section) return null
 
   return (
     <div className="settings">
       <nav className="settings__nav">
-        {GROUPS.map((g) => (
+        {groups.map((g) => (
           <div key={g.title} className="settings__group">
             <span className="settings__group-title">{g.title}</span>
             {g.items.map((s) => (

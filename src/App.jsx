@@ -17,6 +17,7 @@ import { SALES_CAPS } from './lib/permissions'
 import DecisionsPage from './components/Decisions/DecisionsPage'
 import CommercePage from './components/Commerce/CommercePage'
 import ReferencePage from './components/Reference/ReferencePage'
+import FinancePage from './components/Finance/FinancePage'
 
 export default function App() {
   return (
@@ -55,6 +56,14 @@ export default function App() {
                 element={
                   <ProtectedRoute requireCap={['edit_plan', 'approve_plan', 'sales_all']}>
                     <PlanningHub />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/finance"
+                element={
+                  <ProtectedRoute requireCap="finance">
+                    <FinancePage />
                   </ProtectedRoute>
                 }
               />
@@ -112,7 +121,7 @@ export default function App() {
               <Route
                 path="/settings"
                 element={
-                  <ProtectedRoute requireCap="settings">
+                  <ProtectedRoute requireCap={['settings', 'finance']}>
                     <SettingsLayout />
                   </ProtectedRoute>
                 }

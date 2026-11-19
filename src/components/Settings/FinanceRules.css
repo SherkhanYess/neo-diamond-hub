@@ -1,0 +1,18 @@
+.finr { display: flex; flex-direction: column; gap: var(--space-2); max-width: 1100px; }
+.finr h3 { font-family: var(--font-display); font-weight: 400; font-size: 1rem; color: var(--ink-800); margin: var(--space-3) 0 0; }
+.finr__intro, .finr__hint { color: var(--ink-400); font-size: 0.85rem; margin: 0; }
+.finr__table { overflow-x: auto; background: var(--paper-000); border-radius: 18px; box-shadow: var(--shadow-card); }
+.finr__table table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.finr__table th { text-align: left; color: var(--ink-400); font-weight: 600; font-size: 0.75rem; padding: 8px 12px; background: var(--paper-050); }
+.finr__table td { padding: 8px 12px; border-top: 1px solid var(--paper-200); vertical-align: middle; }
+.finr__table td small { display: block; color: var(--ink-400); font-size: 0.72rem; }
+.finr__table tr.is-warn td { background: #FBEDE8; }
+.finr__table select, .finr__table input, .finr__new select, .finr__new input { font: inherit; font-size: 0.82rem; padding: 6px 8px; border: 1px solid var(--paper-300); border-radius: 10px; background: var(--paper-000); color: var(--ink-800); max-width: 100%; }
+.finr__money { width: 110px; text-align: right; }
+.finr__cat { width: 90px; }
+.finr__num { text-align: right; color: var(--ink-600); font-variant-numeric: tabular-nums; }
+.finr__muted { color: var(--ink-400); font-size: 0.8rem; }
+.finr__add { background: var(--ink-800); color: var(--paper-000); border: 0; border-radius: var(--radius-pill); padding: 7px 14px; font: inherit; font-size: 0.82rem; cursor: pointer; }
+.finr__add:disabled { opacity: 0.4; cursor: default; }
+.finr__del { background: none; border: 0; color: var(--ink-400); font-size: 1.2rem; cursor: pointer; margin-left: 6px; }
+.finr__new { display: flex; flex-wrap: wrap; gap: var(--space-1); align-items: center; }

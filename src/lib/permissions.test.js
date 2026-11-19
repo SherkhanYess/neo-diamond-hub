@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { can, visibleMenuItems, CAP_KEYS } from './permissions'
+import { can, visibleMenuItems, CAP_KEYS, SETTINGS_ITEM, canSettingsSection } from './permissions'
 
 describe('can', () => {
   it('returns true when the cap is present', () => {
@@ -34,6 +34,17 @@ describe('visibleMenuItems', () => {
   })
   it('shows everything for an owner with all caps', () => {
     const keys = visibleMenuItems(CAP_KEYS).map((i) => i.key)
-    expect(keys).toEqual(['dashboard', 'commerce', 'marketing', 'sales', 'planning', 'decisions', 'reference'])
+    expect(keys).toEqual(['dashboard', 'commerce', 'marketing', 'sales', 'planning', 'finance', 'decisions', 'reference'])
+  })
+})
+
+describe('право «Финансы»', () => {
+  it('видит вкладку и настройки, но в настройках — только свой раздел', () => {
+    expect(visibleMenuItems(['finance']).map((i) => i.key)).toEqual(['finance'])
+    expect(can(['finance'], SETTINGS_ITEM.cap)).toBe(true)
+    expect(canSettingsSection(['finance'], { key: 'fin_rules', cap: 'finance' })).toBe(true)
+    expect(canSettingsSection(['finance'], { key: 'users' })).toBe(false)
+    expect(canSettingsSection(['settings'], { key: 'users' })).toBe(true)
+    expect(canSettingsSection(['settings'], { key: 'fin_rules', cap: 'finance' })).toBe(false)
   })
 })
