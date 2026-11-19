@@ -67,8 +67,9 @@ export default function FinanceRules() {
     .filter((c) => !c.archived && !/перевод между счетами/i.test(c.name))
     .map((c) => ({ ...c, used: usage.get(Number(c.id)) ?? 0, itemId: R.byCategory.get(Number(c.id)) ?? null }))
     .sort((a, b) => {
-      const ua = a.type === 2 && !a.itemId && a.used && !special.has(Number(a.id)) ? 0 : 1
-      const ub = b.type === 2 && !b.itemId && b.used && !special.has(Number(b.id)) ? 0 : 1
+      const loose = (c) => c.type === 2 && !c.itemId && c.used && !special.has(Number(c.id)) && !peopleCats.has(Number(c.id))
+      const ua = loose(a) ? 0 : 1
+      const ub = loose(b) ? 0 : 1
       return ua - ub || b.used - a.used || a.name.localeCompare(b.name)
     })
 
@@ -107,7 +108,8 @@ export default function FinanceRules() {
           <tbody>
             {cats.map((c) => {
               const isSpecial = special.has(Number(c.id))
-              const warn = c.type === 2 && !c.itemId && c.used && !isSpecial
+              const byPeople = peopleCats.has(Number(c.id))
+              const warn = c.type === 2 && !c.itemId && c.used && !isSpecial && !byPeople
               return (
                 <tr key={c.id} className={warn ? 'is-warn' : ''}>
                   <td>
@@ -125,7 +127,11 @@ export default function FinanceRules() {
                     ) : isSpecial ? (
                       <span className="finr__muted">{SPECIAL.acquiring.includes(Number(c.id)) ? 'эквайринг — вычитается из поступлений' : 'возврат — уменьшает поступления'}</span>
                     ) : (
-                      <ItemSelect value={c.itemId} onChange={(v) => run(() => saveCategoryRule(Number(c.id), v))} />
+                      <ItemSelect
+                        value={c.itemId}
+                        empty={byPeople ? '— по людям; кого не узнали — не распределено —' : '— не распределено —'}
+                        onChange={(v) => run(() => saveCategoryRule(Number(c.id), v))}
+                      />
                     )}
                   </td>
                 </tr>

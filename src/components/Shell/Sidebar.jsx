@@ -7,6 +7,7 @@ const ICONS = {
   dashboard: '▤',
   commerce: '◎',
   planning: '◫',
+  finance: '₸',
   marketing: '◈',
   sales: '⇅',
   taplink: '◇',
