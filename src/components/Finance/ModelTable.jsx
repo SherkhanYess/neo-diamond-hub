@@ -227,7 +227,7 @@ function FundRows({ r, open, toggle, fundInput, setItem, prevFact, model, onSave
       </tr>
       {r.key === 'dividends' && (
         <tr className="dds__row dds__row--l2">
-          <td className="dds__name">в т.ч. благотворительность</td>
+          <td className="dds__name">в т.ч. благотворительность (на руки {nf(r.payout)})</td>
           <td>
             <span className="fm__mode">
               <Num value={model.charity_pct} decimals={2} width={80} onSave={(v) => onSave({ charity_pct: v })} />

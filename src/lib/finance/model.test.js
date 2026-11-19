@@ -29,9 +29,9 @@ describe('финмодель (скрин 1 ТЗ)', () => {
     expect(f('ads').sum).toBeCloseTo(m.margin * 0.15, 2)
     expect(f('development').sum).toBe(3500000)
     expect(f('development').pct).toBeCloseTo(3500000 / m.margin, 8)
-    expect(f('dividends').dividends).toBe(21000000)
+    expect(f('dividends').sum).toBe(21000000) // благотворительность — из дивидендов
     expect(f('dividends').charity).toBe(525000)
-    expect(f('dividends').sum).toBe(21525000)
+    expect(f('dividends').payout).toBe(20475000)
   })
   it('от дивидендов: нужная выручка — при ней остаток 0', () => {
     const need = requiredRevenue(base, prepareRules(raw))
@@ -51,6 +51,10 @@ describe('финмодель (скрин 1 ТЗ)', () => {
     expect(f('rent').sum).toBe(1900000)
     expect(m.blocks.find((b) => b.key === 'fixed').total).toBe(1900000 + 100000 + 3050000 + 268000)
     expect(f('salaries').items.find((i) => i.key === 'salaries.aisultan').sum).toBe(450000)
+  })
+  it('с исправленными итогами модель ТЗ не сходится на 600 000 (оклады +200 000, Астана +400 000)', () => {
+    expect(m.blocks.find((b) => b.key === 'management').total).toBeCloseTo(30065333.33, 1)
+    expect(m.rest).toBeCloseTo(-600000, 0)
   })
   it('остаток = маржа − управление − постоянные', () => {
     const b = (k) => m.blocks.find((x) => x.key === k).total

@@ -52,10 +52,11 @@ export function computeModel(model, R) {
       items: byItems ? itemRows : [],
     }
     if (fund.key === 'dividends') {
+      // Благотворительность — из дивидендов (решение владельца 19.11): фонд = сумма дивидендов,
+      // «в т.ч. благотворительность» — % от неё, на руки — остальное.
       row.dividends = sum
       row.charity = (sum * n(model.charity_pct)) / 100
-      row.sum = sum + row.charity
-      row.pct = div(row.sum, base)
+      row.payout = sum - row.charity
     }
     return row
   }
@@ -101,7 +102,6 @@ export function requiredRevenue(model, R) {
   const inputs = model.funds ?? {}
   const amounts = model.items ?? {}
   const check = n(model.avg_check)
-  const charity = 1 + n(model.charity_pct) / 100
   let varRatio = 0
   let varConst = 0
   let mgmtPct = 0
@@ -111,7 +111,6 @@ export function requiredRevenue(model, R) {
     const input = inputs[f.key]
     const items = R.items.filter((i) => i.fund_id === f.id)
     const byItems = f.block === 'fixed' && (items.some((i) => amounts[i.key] != null) || !input)
-    const mult = f.key === 'dividends' ? charity : 1
     if (byItems) {
       fixedConst += items.reduce((a, i) => a + n(amounts[i.key]), 0)
       continue
@@ -123,8 +122,8 @@ export function requiredRevenue(model, R) {
       else if (input.mode === 'per_sale') varRatio += check ? v / check : 0
       else varConst += v
     } else if (f.block === 'management') {
-      if (input.mode === 'pct') mgmtPct += (v / 100) * mult
-      else mgmtConst += v * mult
+      if (input.mode === 'pct') mgmtPct += v / 100
+      else mgmtConst += v
     } else if (input.mode === 'pct') varRatio += v / 100
     else fixedConst += v
   }
