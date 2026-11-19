@@ -1,0 +1,1621 @@
+{
+"funds": [
+{
+"id": "7495625f-7198-4284-9150-4fd7168c95d7",
+"key": "taxes",
+"name": "Фонд налогов",
+"block": "variable",
+"calc": "pct_revenue",
+"per_sale": false,
+"sort": 10
+},
+{
+"id": "4eda1544-0bcd-4636-8f48-44f6b4489402",
+"key": "pct_sales",
+"name": "Фонд ЗП процент от продаж",
+"block": "variable",
+"calc": "pct_revenue",
+"per_sale": false,
+"sort": 20
+},
+{
+"id": "90713051-4a9a-4ab0-ba95-4d3416dc4bfb",
+"key": "piece",
+"name": "Фонд сдельной ЗП",
+"block": "variable",
+"calc": "pct_revenue_per_sale",
+"per_sale": true,
+"sort": 30
+},
+{
+"id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases",
+"name": "Фонд закупок",
+"block": "variable",
+"calc": "pct_revenue_per_sale",
+"per_sale": true,
+"sort": 40
+},
+{
+"id": "3ae4bbb6-62f8-495c-bf41-c4be6ef52273",
+"key": "transport",
+"name": "Фонд транспортных",
+"block": "variable",
+"calc": "pct_revenue_per_sale",
+"per_sale": true,
+"sort": 50
+},
+{
+"id": "a6c455e6-a876-44c1-b23f-f642943babee",
+"key": "dividends",
+"name": "Фонд дивидендов (включая благотворительность)",
+"block": "management",
+"calc": "pct_margin",
+"per_sale": false,
+"sort": 60
+},
+{
+"id": "93ea453e-f4b7-45d8-9de4-859ade913f67",
+"key": "development",
+"name": "Фонд развития",
+"block": "management",
+"calc": "pct_margin",
+"per_sale": false,
+"sort": 70
+},
+{
+"id": "e14e8741-b262-48f2-8716-f59ca1fdda2d",
+"key": "reserve",
+"name": "Резервный фонд",
+"block": "management",
+"calc": "pct_margin",
+"per_sale": false,
+"sort": 80
+},
+{
+"id": "0296f9ef-f88f-4a1c-a76d-51b6fbce3ac2",
+"key": "ads",
+"name": "Фонд рекламы и продвижения",
+"block": "management",
+"calc": "pct_margin",
+"per_sale": false,
+"sort": 90
+},
+{
+"id": "1bfa3af8-fe44-4f3f-b27c-86baf9ac2d24",
+"key": "rent",
+"name": "Фонд аренды помещения",
+"block": "fixed",
+"calc": "fixed_month",
+"per_sale": false,
+"sort": 100
+},
+{
+"id": "d311475c-1ef5-4156-bda6-5aeb8427d86c",
+"key": "utilities",
+"name": "Фонд коммунальных услуг (содержание офиса)",
+"block": "fixed",
+"calc": "fixed_month",
+"per_sale": false,
+"sort": 110
+},
+{
+"id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries",
+"name": "Фонд оплаты труда (оклады)",
+"block": "fixed",
+"calc": "salaries",
+"per_sale": false,
+"sort": 120
+},
+{
+"id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other",
+"name": "Фонд прочих",
+"block": "fixed",
+"calc": "fixed_month",
+"per_sale": false,
+"sort": 130
+}
+],
+"items": [
+{
+"id": "f5c8320a-e20a-45d9-8a52-68c93a2d05d6",
+"fund_id": "a6c455e6-a876-44c1-b23f-f642943babee",
+"key": "dividends.dividends",
+"name": "Дивиденды",
+"sort": 1
+},
+{
+"id": "eb0a549d-810c-4532-9937-bca036b0a64b",
+"fund_id": "3ae4bbb6-62f8-495c-bf41-c4be6ef52273",
+"key": "transport.courier",
+"name": "Курьер",
+"sort": 1
+},
+{
+"id": "1f407e75-17a0-42e5-8d66-467c8c57877e",
+"fund_id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases.diamonds",
+"name": "Бриллианты",
+"sort": 1
+},
+{
+"id": "fb0bed50-91ff-4af2-9df2-65ea70224c6a",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.danelya",
+"name": "Данеля — лид-менеджер",
+"sort": 1
+},
+{
+"id": "dac713c8-9dbe-4b50-9540-a9c74a432ac5",
+"fund_id": "d311475c-1ef5-4156-bda6-5aeb8427d86c",
+"key": "utilities.office",
+"name": "ТМЦ / содержание офиса",
+"sort": 1
+},
+{
+"id": "756b8ae0-d1b9-48eb-a652-51e4770fbcb0",
+"fund_id": "7495625f-7198-4284-9150-4fd7168c95d7",
+"key": "taxes.profit",
+"name": "Налог 3% (упрощёнка)",
+"sort": 1
+},
+{
+"id": "e6461c11-546f-46a2-9240-00f2f91504d3",
+"fund_id": "4eda1544-0bcd-4636-8f48-44f6b4489402",
+"key": "pct_sales.bonus_danelya",
+"name": "Бонусы Данеля (сверх оклада)",
+"sort": 1
+},
+{
+"id": "518974e0-d162-4f75-8a95-12bc20c4c9c5",
+"fund_id": "1bfa3af8-fe44-4f3f-b27c-86baf9ac2d24",
+"key": "rent.almaty",
+"name": "Аренда Алматы",
+"sort": 1
+},
+{
+"id": "ecfa7bc1-2813-4927-999b-f071728c3658",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.internet",
+"name": "Интернет",
+"sort": 1
+},
+{
+"id": "e03c137a-ca0c-4bc3-ae52-0222517472e9",
+"fund_id": "90713051-4a9a-4ab0-ba95-4d3416dc4bfb",
+"key": "piece.kpi_nargiza",
+"name": "KPI производства (Наргиза)",
+"sort": 1
+},
+{
+"id": "f1255adb-bd77-4e8f-b707-8b1254e99641",
+"fund_id": "0296f9ef-f88f-4a1c-a76d-51b6fbce3ac2",
+"key": "ads.ads",
+"name": "Реклама (таргет)",
+"sort": 1
+},
+{
+"id": "71b5f8fd-4759-4a99-af93-dd9c34014a59",
+"fund_id": "93ea453e-f4b7-45d8-9de4-859ade913f67",
+"key": "development.consulting",
+"name": "Консалтинг",
+"sort": 1
+},
+{
+"id": "1f49bf69-d4c0-4d2b-83f9-1af80dea3f2c",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.almas",
+"name": "Алмас — консультант",
+"sort": 2
+},
+{
+"id": "fa92f179-c19f-4f0e-8de6-6f13045bcf68",
+"fund_id": "4eda1544-0bcd-4636-8f48-44f6b4489402",
+"key": "pct_sales.bonus_almas",
+"name": "Бонусы Алмас (сверх оклада)",
+"sort": 2
+},
+{
+"id": "1cb9f618-66df-40cf-8484-fef8a88eb4c8",
+"fund_id": "90713051-4a9a-4ab0-ba95-4d3416dc4bfb",
+"key": "piece.kpi_marketing",
+"name": "KPI маркетологов (сверх оклада)",
+"sort": 2
+},
+{
+"id": "95c6e71f-4dae-4134-b9fc-4861630a3309",
+"fund_id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases.gold",
+"name": "Золото",
+"sort": 2
+},
+{
+"id": "88b99be1-938b-4c7e-aac1-a4ff6c469259",
+"fund_id": "3ae4bbb6-62f8-495c-bf41-c4be6ef52273",
+"key": "transport.cargo",
+"name": "Карго доставка",
+"sort": 2
+},
+{
+"id": "d8588abc-44b7-4129-832d-8f5d505e19c3",
+"fund_id": "a6c455e6-a876-44c1-b23f-f642943babee",
+"key": "dividends.profit",
+"name": "Вывод прибыли",
+"sort": 2
+},
+{
+"id": "216cf8c8-99c3-40a9-9578-6ce9671aa0b7",
+"fund_id": "93ea453e-f4b7-45d8-9de4-859ade913f67",
+"key": "development.repair",
+"name": "Ремонт",
+"sort": 2
+},
+{
+"id": "d052dce5-41ac-4cea-9fca-f6d7150f79b7",
+"fund_id": "0296f9ef-f88f-4a1c-a76d-51b6fbce3ac2",
+"key": "ads.model",
+"name": "Модель",
+"sort": 2
+},
+{
+"id": "45cb72b9-3b70-4e65-8205-34130dbdb586",
+"fund_id": "1bfa3af8-fe44-4f3f-b27c-86baf9ac2d24",
+"key": "rent.astana",
+"name": "Аренда Астана",
+"sort": 2
+},
+{
+"id": "dae7f370-4c2c-4cc0-9318-8b2c89294630",
+"fund_id": "7495625f-7198-4284-9150-4fd7168c95d7",
+"key": "taxes.payroll",
+"name": "Налог на ФОТ",
+"sort": 2
+},
+{
+"id": "5004d40b-e11e-43d5-b3d1-88b909761291",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.amocrm",
+"name": "Amo CRM",
+"sort": 2
+},
+{
+"id": "12f37d47-d1b4-4361-9c5b-d1b288f408c0",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.ablay",
+"name": "Аблай — консультант (Астана)",
+"sort": 3
+},
+{
+"id": "dd0664a9-bf38-4715-8667-e2a16c2dfde8",
+"fund_id": "a6c455e6-a876-44c1-b23f-f642943babee",
+"key": "dividends.charity",
+"name": "Благотворительность",
+"sort": 3
+},
+{
+"id": "37dd8824-9873-4f24-adb5-a3eea46628cb",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.adesk",
+"name": "Adesk",
+"sort": 3
+},
+{
+"id": "057604e8-e155-41a1-bdda-8e1aab28a78d",
+"fund_id": "90713051-4a9a-4ab0-ba95-4d3416dc4bfb",
+"key": "piece.tiktok",
+"name": "ТикТок-стрим (за продажу)",
+"sort": 3
+},
+{
+"id": "45819f69-34de-470b-885b-bf33f830ffb8",
+"fund_id": "4eda1544-0bcd-4636-8f48-44f6b4489402",
+"key": "pct_sales.bonus_ablay",
+"name": "Бонусы Аблай (сверх оклада)",
+"sort": 3
+},
+{
+"id": "bf158bf3-e4cf-41a1-868f-4a24cb4dcda8",
+"fund_id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases.workshop",
+"name": "Работа цеха",
+"sort": 3
+},
+{
+"id": "58b7dd46-3ec7-4d7c-a2f8-e85d5e3a06a6",
+"fund_id": "0296f9ef-f88f-4a1c-a76d-51b6fbce3ac2",
+"key": "ads.video",
+"name": "Видеограф",
+"sort": 3
+},
+{
+"id": "d6f4508b-e595-471b-bcdb-055701ffe861",
+"fund_id": "0296f9ef-f88f-4a1c-a76d-51b6fbce3ac2",
+"key": "ads.studio",
+"name": "Аренда студии",
+"sort": 4
+},
+{
+"id": "4347d42b-7e46-4f49-9e87-60624c66592c",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.gaukhar",
+"name": "Гаухар — TikTok-стример",
+"sort": 4
+},
+{
+"id": "84cda740-c4b0-427d-81de-8beef5f03180",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.kelesu",
+"name": "Kelesu",
+"sort": 4
+},
+{
+"id": "13f99988-afdd-4248-a9f5-0a8ddfdcad67",
+"fund_id": "4eda1544-0bcd-4636-8f48-44f6b4489402",
+"key": "pct_sales.share",
+"name": "Доля от продаж (товар под реализацию)",
+"sort": 4
+},
+{
+"id": "b696043d-f1ef-405d-8cfe-852b5a09d50e",
+"fund_id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases.dubai",
+"name": "Украшения Дубай",
+"sort": 4
+},
+{
+"id": "815acb57-f120-4df8-8717-3ce36f8dc58e",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.bitrix",
+"name": "Битрикс",
+"sort": 5
+},
+{
+"id": "0f3ed4dc-b400-4fb6-8a6b-5121cec3268a",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.aruzhan",
+"name": "Аружан — SMM",
+"sort": 5
+},
+{
+"id": "94a07d4c-6eb7-48f4-b667-7a294dfd69b3",
+"fund_id": "4eda1544-0bcd-4636-8f48-44f6b4489402",
+"key": "pct_sales.other",
+"name": "Прочие выплаты отделу продаж",
+"sort": 5
+},
+{
+"id": "749c1f4c-4f27-4eb0-87b8-eb053704b74a",
+"fund_id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases.stock",
+"name": "Товар в наличие (закупка украшений)",
+"sort": 5
+},
+{
+"id": "4679b118-f86a-41c6-88d1-6a26b109dff2",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.meta",
+"name": "Meta",
+"sort": 6
+},
+{
+"id": "a3a6314e-b08a-4cb7-8d5c-d9e6830d17d2",
+"fund_id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases.packaging",
+"name": "Упаковка",
+"sort": 6
+},
+{
+"id": "0e66dbcf-4851-45e1-afc7-5362d552d263",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.mukhamed",
+"name": "Мухамед — таргетолог (аутсорс)",
+"sort": 6
+},
+{
+"id": "04ede615-c31c-46ab-b63e-d0f7eec1a4ec",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.nargiza",
+"name": "Наргиза — менеджер по заказам",
+"sort": 7
+},
+{
+"id": "1dfd5de6-012d-44cb-a735-ce8b0ffe58c6",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.claude",
+"name": "Claude",
+"sort": 7
+},
+{
+"id": "d0fbcb34-9fa5-4280-a0bd-a3625d47859f",
+"fund_id": "ddde0deb-70f0-44f4-a94e-5e220d3681d9",
+"key": "purchases.service",
+"name": "Сертификаты / сервис",
+"sort": 7
+},
+{
+"id": "7ae05e67-52f2-4b55-b58f-20b1abc92e97",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.accountant",
+"name": "Бухгалтер (аутсорс)",
+"sort": 8
+},
+{
+"id": "10042d5c-0a49-4c9b-96a0-f192b6b54041",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.wazzup",
+"name": "Wazzup",
+"sort": 8
+},
+{
+"id": "a71dca27-9ece-44f9-b9b2-3778ac4058d5",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.aisultan",
+"name": "Айсултан — маркетолог",
+"sort": 9
+},
+{
+"id": "8ccd027b-d7cf-4ff5-a539-dbdad78a1df7",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.trustme",
+"name": "Trust me (договоры)",
+"sort": 9
+},
+{
+"id": "b8758564-f770-4017-9b63-bf058f11cbf3",
+"fund_id": "f9a9ef21-1a7e-4e53-b417-f18d832b93de",
+"key": "salaries.designer",
+"name": "Дизайнер",
+"sort": 10
+},
+{
+"id": "b4766112-1263-4608-b71c-115a09bf98b5",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.bank",
+"name": "Банковское обслуживание",
+"sort": 10
+},
+{
+"id": "a91b2b18-b637-4a72-9005-66aee7d77231",
+"fund_id": "03386d64-5dee-4444-b5b8-97ac569fed14",
+"key": "other.change",
+"name": "Сдача клиентам",
+"sort": 11
+}
+],
+"rules": [
+{
+"id": "8b795c8a-6a86-4c66-96da-da769a94bedb",
+"priority": 1,
+"kind": "exclude_project",
+"category_id": null,
+"account_id": null,
+"text_match": "Статуетка",
+"item_id": null
+},
+{
+"id": "7d97718a-aedd-4879-88c5-f3e0463456d0",
+"priority": 10,
+"kind": "account_no_category",
+"category_id": null,
+"account_id": 242480,
+"text_match": null,
+"item_id": "f1255adb-bd77-4e8f-b707-8b1254e99641"
+},
+{
+"id": "35ceac76-c9e8-4aa0-911f-e6cba2a4fc30",
+"priority": 20,
+"kind": "category_description",
+"category_id": 576837,
+"account_id": null,
+"text_match": "Астана",
+"item_id": "45cb72b9-3b70-4e65-8205-34130dbdb586"
+},
+{
+"id": "06cec11c-5084-4aae-bf85-b983dd2793ff",
+"priority": 50,
+"kind": "category",
+"category_id": 1973048,
+"account_id": null,
+"text_match": null,
+"item_id": "13f99988-afdd-4248-a9f5-0a8ddfdcad67"
+},
+{
+"id": "77441248-4175-4019-8edb-eef78388c9a5",
+"priority": 50,
+"kind": "category",
+"category_id": 1469526,
+"account_id": null,
+"text_match": null,
+"item_id": "d0fbcb34-9fa5-4280-a0bd-a3625d47859f"
+},
+{
+"id": "65e32b6b-9bc6-4fb9-90e6-391d3b195708",
+"priority": 50,
+"kind": "category",
+"category_id": 1524768,
+"account_id": null,
+"text_match": null,
+"item_id": "a3a6314e-b08a-4cb7-8d5c-d9e6830d17d2"
+},
+{
+"id": "0db380b3-c6e1-416f-9289-0d20241b324e",
+"priority": 50,
+"kind": "category",
+"category_id": 1469532,
+"account_id": null,
+"text_match": null,
+"item_id": "a3a6314e-b08a-4cb7-8d5c-d9e6830d17d2"
+},
+{
+"id": "1b61b44f-1c8e-41d4-8d7e-95564148217f",
+"priority": 50,
+"kind": "category",
+"category_id": 1698914,
+"account_id": null,
+"text_match": null,
+"item_id": "749c1f4c-4f27-4eb0-87b8-eb053704b74a"
+},
+{
+"id": "6368dbcb-8a98-4643-9402-2d8596af7b6f",
+"priority": 50,
+"kind": "category",
+"category_id": 2071687,
+"account_id": null,
+"text_match": null,
+"item_id": "b696043d-f1ef-405d-8cfe-852b5a09d50e"
+},
+{
+"id": "07eb8c3e-336d-420e-b92c-56fa74a1ec1a",
+"priority": 50,
+"kind": "category",
+"category_id": 1469519,
+"account_id": null,
+"text_match": null,
+"item_id": "bf158bf3-e4cf-41a1-868f-4a24cb4dcda8"
+},
+{
+"id": "f58e5137-7d3d-4a0c-b2ca-a703d146c57d",
+"priority": 50,
+"kind": "category",
+"category_id": 1469520,
+"account_id": null,
+"text_match": null,
+"item_id": "95c6e71f-4dae-4134-b9fc-4861630a3309"
+},
+{
+"id": "87d9c870-6c53-4a21-b59f-39ae11b5206c",
+"priority": 50,
+"kind": "category",
+"category_id": 1469487,
+"account_id": null,
+"text_match": null,
+"item_id": "1f407e75-17a0-42e5-8d66-467c8c57877e"
+},
+{
+"id": "83ee5c45-70ca-4852-bed3-457cc293e457",
+"priority": 50,
+"kind": "category",
+"category_id": 1469493,
+"account_id": null,
+"text_match": null,
+"item_id": "88b99be1-938b-4c7e-aac1-a4ff6c469259"
+},
+{
+"id": "f9b3a91c-ef54-4780-903a-51323b2d079e",
+"priority": 50,
+"kind": "category",
+"category_id": 1469494,
+"account_id": null,
+"text_match": null,
+"item_id": "eb0a549d-810c-4532-9937-bca036b0a64b"
+},
+{
+"id": "5caabd56-1fbc-4141-99bf-fc00d247de97",
+"priority": 50,
+"kind": "category",
+"category_id": 1931519,
+"account_id": null,
+"text_match": null,
+"item_id": "dd0664a9-bf38-4715-8667-e2a16c2dfde8"
+},
+{
+"id": "3572d0c2-7a46-49dd-a7d4-49cf23a1cd4e",
+"priority": 50,
+"kind": "category",
+"category_id": 576823,
+"account_id": null,
+"text_match": null,
+"item_id": "d8588abc-44b7-4129-832d-8f5d505e19c3"
+},
+{
+"id": "b7f366d2-e0ee-477f-a664-08989d3403fe",
+"priority": 50,
+"kind": "category",
+"category_id": 1469486,
+"account_id": null,
+"text_match": null,
+"item_id": "f5c8320a-e20a-45d9-8a52-68c93a2d05d6"
+},
+{
+"id": "1dfa42c6-1858-40d6-b29f-39c54c995400",
+"priority": 50,
+"kind": "category",
+"category_id": 1957848,
+"account_id": null,
+"text_match": null,
+"item_id": "216cf8c8-99c3-40a9-9578-6ce9671aa0b7"
+},
+{
+"id": "2aafda41-7d19-4e1d-90a0-82cf6933b14a",
+"priority": 50,
+"kind": "category",
+"category_id": 1845108,
+"account_id": null,
+"text_match": null,
+"item_id": "71b5f8fd-4759-4a99-af93-dd9c34014a59"
+},
+{
+"id": "1577cf23-24e6-470f-8224-b4454cdb573a",
+"priority": 50,
+"kind": "category",
+"category_id": 576829,
+"account_id": null,
+"text_match": null,
+"item_id": "dae7f370-4c2c-4cc0-9318-8b2c89294630"
+},
+{
+"id": "aec390a3-b78d-4930-9f82-6ef36b1046ff",
+"priority": 50,
+"kind": "category",
+"category_id": 1693718,
+"account_id": null,
+"text_match": null,
+"item_id": "58b7dd46-3ec7-4d7c-a2f8-e85d5e3a06a6"
+},
+{
+"id": "2951c983-2d30-43d4-bfa3-5a3539e11f32",
+"priority": 50,
+"kind": "category",
+"category_id": 1693720,
+"account_id": null,
+"text_match": null,
+"item_id": "d052dce5-41ac-4cea-9fca-f6d7150f79b7"
+},
+{
+"id": "8ae11867-87d7-44aa-8d91-941a96cf78cd",
+"priority": 50,
+"kind": "category",
+"category_id": 1469525,
+"account_id": null,
+"text_match": null,
+"item_id": "f1255adb-bd77-4e8f-b707-8b1254e99641"
+},
+{
+"id": "1a8d001e-1309-46d8-a2f3-f245f79dc92b",
+"priority": 50,
+"kind": "category",
+"category_id": 576837,
+"account_id": null,
+"text_match": null,
+"item_id": "518974e0-d162-4f75-8a95-12bc20c4c9c5"
+},
+{
+"id": "8f5367db-fbd8-4d9a-950e-13b978fc3d22",
+"priority": 50,
+"kind": "category",
+"category_id": 1822120,
+"account_id": null,
+"text_match": null,
+"item_id": "dac713c8-9dbe-4b50-9540-a9c74a432ac5"
+},
+{
+"id": "97641f70-c1a7-419f-9771-499c2d1af8a5",
+"priority": 50,
+"kind": "category",
+"category_id": 1894479,
+"account_id": null,
+"text_match": null,
+"item_id": "7ae05e67-52f2-4b55-b58f-20b1abc92e97"
+},
+{
+"id": "e74c8cf8-dfd9-4e78-8268-14c435db3803",
+"priority": 50,
+"kind": "category",
+"category_id": 1469550,
+"account_id": null,
+"text_match": null,
+"item_id": "a91b2b18-b637-4a72-9005-66aee7d77231"
+},
+{
+"id": "061e46b7-f3ca-4465-909d-5b97006c9d62",
+"priority": 50,
+"kind": "category",
+"category_id": 576832,
+"account_id": null,
+"text_match": null,
+"item_id": "b4766112-1263-4608-b71c-115a09bf98b5"
+},
+{
+"id": "f4f8271c-59a7-4850-9562-d279c8b37b5c",
+"priority": 50,
+"kind": "category",
+"category_id": 1562754,
+"account_id": null,
+"text_match": null,
+"item_id": "10042d5c-0a49-4c9b-96a0-f192b6b54041"
+},
+{
+"id": "a04a13c8-0598-4b13-8e39-a6bc766f3739",
+"priority": 50,
+"kind": "category",
+"category_id": 1931536,
+"account_id": null,
+"text_match": null,
+"item_id": "1dfd5de6-012d-44cb-a735-ce8b0ffe58c6"
+},
+{
+"id": "943ef046-fb4d-41b9-b26c-6a7c93a9362e",
+"priority": 50,
+"kind": "category",
+"category_id": 1624656,
+"account_id": null,
+"text_match": null,
+"item_id": "4679b118-f86a-41c6-88d1-6a26b109dff2"
+},
+{
+"id": "1f1be633-6896-42ed-b361-c2e63c8c3493",
+"priority": 50,
+"kind": "category",
+"category_id": 1524522,
+"account_id": null,
+"text_match": null,
+"item_id": "815acb57-f120-4df8-8717-3ce36f8dc58e"
+},
+{
+"id": "ac727b62-66f1-412b-9654-94f6cc3b92db",
+"priority": 50,
+"kind": "category",
+"category_id": 1999786,
+"account_id": null,
+"text_match": null,
+"item_id": "84cda740-c4b0-427d-81de-8beef5f03180"
+},
+{
+"id": "6a5376ef-97cf-4237-bbb3-af7d1c1cd015",
+"priority": 50,
+"kind": "category",
+"category_id": 1469498,
+"account_id": null,
+"text_match": null,
+"item_id": "5004d40b-e11e-43d5-b3d1-88b909761291"
+},
+{
+"id": "a573df40-3be6-4a28-aa0d-99a62e2da9e1",
+"priority": 50,
+"kind": "category",
+"category_id": 583290,
+"account_id": null,
+"text_match": null,
+"item_id": "ecfa7bc1-2813-4927-999b-f071728c3658"
+},
+{
+"id": "58510296-7853-4b73-8dfb-ea2dceddd29c",
+"priority": 50,
+"kind": "category",
+"category_id": 1683546,
+"account_id": null,
+"text_match": null,
+"item_id": "d6f4508b-e595-471b-bcdb-055701ffe861"
+},
+{
+"id": "96b7ef28-4065-427b-9a54-4baa888c3ff1",
+"priority": 50,
+"kind": "category",
+"category_id": 576828,
+"account_id": null,
+"text_match": null,
+"item_id": "756b8ae0-d1b9-48eb-a652-51e4770fbcb0"
+},
+{
+"id": "80f7bfdc-127f-4aa2-a479-f4ac50062f34",
+"priority": 50,
+"kind": "category",
+"category_id": 1469548,
+"account_id": null,
+"text_match": null,
+"item_id": "94a07d4c-6eb7-48f4-b667-7a294dfd69b3"
+}
+],
+"people": [
+{
+"id": "10a9a675-9605-4924-b4bb-7356efa1cb71",
+"name": "Данеля",
+"match": [
+"Данеля",
+"Данел"
+],
+"categories": [
+"1469548"
+],
+"item_id": "fb0bed50-91ff-4af2-9df2-65ea70224c6a",
+"oklad": "300000",
+"overflow_item_id": "e6461c11-546f-46a2-9240-00f2f91504d3"
+},
+{
+"id": "017753f3-3460-409f-9997-4f652285b82c",
+"name": "Алмас",
+"match": [
+"Алмас"
+],
+"categories": [
+"1469548"
+],
+"item_id": "1f49bf69-d4c0-4d2b-83f9-1af80dea3f2c",
+"oklad": "300000",
+"overflow_item_id": "fa92f179-c19f-4f0e-8de6-6f13045bcf68"
+},
+{
+"id": "f8a6344a-27ed-440a-8492-276c4894c770",
+"name": "Аблай",
+"match": [
+"Аблай",
+"Абылай"
+],
+"categories": [
+"1469548"
+],
+"item_id": "12f37d47-d1b4-4361-9c5b-d1b288f408c0",
+"oklad": "300000",
+"overflow_item_id": "45819f69-34de-470b-885b-bf33f830ffb8"
+},
+{
+"id": "d4c639a4-0a35-4093-9eb1-c3d356f86b5c",
+"name": "Гаухар",
+"match": [
+"Гаухар"
+],
+"categories": [
+"1469548",
+"1526858"
+],
+"item_id": "4347d42b-7e46-4f49-9e87-60624c66592c",
+"oklad": "300000",
+"overflow_item_id": "057604e8-e155-41a1-bdda-8e1aab28a78d"
+},
+{
+"id": "d085a619-aa47-423d-b0b3-62ac75f4a0f8",
+"name": "Аружан",
+"match": [
+"Аружан"
+],
+"categories": [
+"1526858"
+],
+"item_id": "0f3ed4dc-b400-4fb6-8a6b-5121cec3268a",
+"oklad": "200000",
+"overflow_item_id": "1cb9f618-66df-40cf-8484-fef8a88eb4c8"
+},
+{
+"id": "f24885b5-1e43-4d59-9c3e-d73335048cfc",
+"name": "Мухамед",
+"match": [
+"Мухамед",
+"Yourmarketolog"
+],
+"categories": [
+"583315"
+],
+"item_id": "0e66dbcf-4851-45e1-afc7-5362d552d263",
+"oklad": "500000",
+"overflow_item_id": null
+},
+{
+"id": "05b96a09-72b7-4b53-a70b-6ef14553bf7b",
+"name": "Наргиза",
+"match": [
+"Наргиза"
+],
+"categories": [
+"1578117"
+],
+"item_id": "04ede615-c31c-46ab-b63e-d0f7eec1a4ec",
+"oklad": "400000",
+"overflow_item_id": "e03c137a-ca0c-4bc3-ae52-0222517472e9"
+},
+{
+"id": "4c37d65f-b22a-404b-ae66-2f81f4f0194f",
+"name": "Айсултан",
+"match": [
+"Айсултан"
+],
+"categories": [
+"1526858"
+],
+"item_id": "a71dca27-9ece-44f9-b9b2-3778ac4058d5",
+"oklad": "450000",
+"overflow_item_id": "1cb9f618-66df-40cf-8484-fef8a88eb4c8"
+},
+{
+"id": "6b18e5c6-4fc4-4868-b304-a2e12ab570ac",
+"name": "Дизайнер",
+"match": [
+"Дизайнер"
+],
+"categories": [
+"1526858"
+],
+"item_id": "b8758564-f770-4017-9b63-bf058f11cbf3",
+"oklad": "200000",
+"overflow_item_id": null
+}
+],
+"accounts": [
+{
+"id": 242475,
+"name": "Kaspi Pay",
+"currency": "KZT",
+"kind": "bank"
+},
+{
+"id": 242476,
+"name": "Наличные (доллар)",
+"currency": "USD",
+"kind": "cash"
+},
+{
+"id": 242477,
+"name": "Наличные (тенге)",
+"currency": "KZT",
+"kind": "cash"
+},
+{
+"id": 242478,
+"name": "Налоговый фонд",
+"currency": "KZT",
+"kind": "fund"
+},
+{
+"id": 242479,
+"name": "Резервный фонд",
+"currency": "KZT",
+"kind": "fund"
+},
+{
+"id": 242480,
+"name": "Фонд маркетинга (долларовый счет)",
+"currency": "USD",
+"kind": "fund"
+},
+{
+"id": 242482,
+"name": "Фонд развития",
+"currency": "KZT",
+"kind": "fund"
+},
+{
+"id": 242502,
+"name": "Фонд маркетинга (тенговый счет)",
+"currency": "KZT",
+"kind": "fund"
+},
+{
+"id": 252014,
+"name": "Личные деньги Шерхана",
+"currency": "KZT",
+"kind": "other"
+},
+{
+"id": 283233,
+"name": "Online Bank (тенге)",
+"currency": "KZT",
+"kind": "bank"
+},
+{
+"id": 283234,
+"name": "Online bank (доллар)",
+"currency": "USD",
+"kind": "bank"
+},
+{
+"id": 286071,
+"name": "Фонд развития (долларовый счет)",
+"currency": "USD",
+"kind": "fund"
+},
+{
+"id": 303498,
+"name": "Цифровая наличка",
+"currency": "KZT",
+"kind": "cash"
+}
+],
+"categories": [
+{
+"id": 576822,
+"name": "Ввод денег в бизнес",
+"type": 1
+},
+{
+"id": 576823,
+"name": "Вывод прибыли",
+"type": 2
+},
+{
+"id": 576824,
+"name": "Кредит",
+"type": 1
+},
+{
+"id": 576825,
+"name": "Проценты по кредитам и займам",
+"type": 2
+},
+{
+"id": 576826,
+"name": "Тело кредита",
+"type": 2
+},
+{
+"id": 576827,
+"name": "Налоги и пошлины",
+"type": 2
+},
+{
+"id": 576828,
+"name": "Налог на прибыль",
+"type": 2
+},
+{
+"id": 576829,
+"name": "Налог на фонд оплаты труда",
+"type": 2
+},
+{
+"id": 576830,
+"name": "Налог на имущество",
+"type": 2
+},
+{
+"id": 576831,
+"name": "Налог на добавленную стоимость",
+"type": 2
+},
+{
+"id": 576832,
+"name": "Комиссия банка",
+"type": 2
+},
+{
+"id": 576834,
+"name": "ЗП: Окладная часть",
+"type": 2
+},
+{
+"id": 576835,
+"name": "Коммунальные платежи",
+"type": 2
+},
+{
+"id": 576836,
+"name": "Банковское обслуживание",
+"type": 2
+},
+{
+"id": 576837,
+"name": "Аренда помещения",
+"type": 2
+},
+{
+"id": 576839,
+"name": "Покупка техники / мебели",
+"type": 2
+},
+{
+"id": 576841,
+"name": "Хостинг сайта",
+"type": 2
+},
+{
+"id": 580583,
+"name": "Оффлайн-маркетинг",
+"type": 2
+},
+{
+"id": 580585,
+"name": "Почтовые услуги",
+"type": 2
+},
+{
+"id": 583226,
+"name": "Комиссия за Pay",
+"type": 2
+},
+{
+"id": 583229,
+"name": "Обслуживание офиса",
+"type": 2
+},
+{
+"id": 583233,
+"name": "ЗП: Премированная часть (KPI)",
+"type": 2
+},
+{
+"id": 583290,
+"name": "Интернет",
+"type": 2
+},
+{
+"id": 583315,
+"name": "Услуги специалистов",
+"type": 2
+},
+{
+"id": 624077,
+"name": "Инвестиция в бизнес",
+"type": 2
+},
+{
+"id": 1469454,
+"name": "Полные оплаты от клиентов",
+"type": 1
+},
+{
+"id": 1469455,
+"name": "Предоплаты от клиентов",
+"type": 1
+},
+{
+"id": 1469456,
+"name": "Полученные займы",
+"type": 1
+},
+{
+"id": 1469457,
+"name": "Привлеченные инвестиций",
+"type": 1
+},
+{
+"id": 1469460,
+"name": "Возврат комиссий банка",
+"type": 1
+},
+{
+"id": 1469468,
+"name": "Визуализация 3D моделей",
+"type": 2
+},
+{
+"id": 1469483,
+"name": "Возвраты клиентам",
+"type": 2
+},
+{
+"id": 1469486,
+"name": "Вывод дивидендов",
+"type": 2
+},
+{
+"id": 1469487,
+"name": "Закупка бриллиантов",
+"type": 2
+},
+{
+"id": 1469488,
+"name": "Закупка золота",
+"type": 2
+},
+{
+"id": 1469490,
+"name": "Инфлюенс-маркетинг",
+"type": 2
+},
+{
+"id": 1469493,
+"name": "Карго доставка",
+"type": 2
+},
+{
+"id": 1469494,
+"name": "Курьер",
+"type": 2
+},
+{
+"id": 1469496,
+"name": "Нанесение гравировки",
+"type": 2
+},
+{
+"id": 1469497,
+"name": "Погашение займа",
+"type": 2
+},
+{
+"id": 1469498,
+"name": "Подписка на amoCRM",
+"type": 2
+},
+{
+"id": 1469501,
+"name": "Подписка на ChatGPT",
+"type": 2
+},
+{
+"id": 1469502,
+"name": "Подписка на Lovable",
+"type": 2
+},
+{
+"id": 1469503,
+"name": "Подписка на Pleep",
+"type": 2
+},
+{
+"id": 1469504,
+"name": "Подписка на Финолог",
+"type": 2
+},
+{
+"id": 1469519,
+"name": "Работа цеха",
+"type": 2
+},
+{
+"id": 1469520,
+"name": "Расходы на золото",
+"type": 2
+},
+{
+"id": 1469523,
+"name": "Расходы на серебро",
+"type": 2
+},
+{
+"id": 1469525,
+"name": "Реклама",
+"type": 2
+},
+{
+"id": 1469526,
+"name": "Сервис",
+"type": 2
+},
+{
+"id": 1469527,
+"name": "Создание 3D моделей",
+"type": 2
+},
+{
+"id": 1469529,
+"name": "Создание размерной сетки",
+"type": 2
+},
+{
+"id": 1469532,
+"name": "Упаковка для украшений",
+"type": 2
+},
+{
+"id": 1469546,
+"name": "Возврат комиссий банка",
+"type": 2
+},
+{
+"id": 1469547,
+"name": "Банковские услуги",
+"type": 2
+},
+{
+"id": 1469548,
+"name": "ФОТ: Отдел продаж",
+"type": 2
+},
+{
+"id": 1469549,
+"name": "Перевод между счетами",
+"type": 2
+},
+{
+"id": 1469550,
+"name": "Сдача",
+"type": 2
+},
+{
+"id": 1469551,
+"name": "Бартерные расходы",
+"type": 1
+},
+{
+"id": 1469552,
+"name": "Профессиональное обучение",
+"type": 2
+},
+{
+"id": 1469553,
+"name": "Нераспределенные расходы",
+"type": 2
+},
+{
+"id": 1469554,
+"name": "Покупка комплектующих",
+"type": 2
+},
+{
+"id": 1469555,
+"name": "Ввод денег",
+"type": 1
+},
+{
+"id": 1469556,
+"name": "Подрядчики",
+"type": 2
+},
+{
+"id": 1469557,
+"name": "Вложения в бренд",
+"type": 2
+},
+{
+"id": 1469581,
+"name": "Перевод между счетами",
+"type": 1
+},
+{
+"id": 1469634,
+"name": "Бартерные расходы",
+"type": 2
+},
+{
+"id": 1486038,
+"name": "Расходы на бриллианты",
+"type": 2
+},
+{
+"id": 1496561,
+"name": "Распечатка воска",
+"type": 2
+},
+{
+"id": 1496623,
+"name": "Работа литейщика",
+"type": 2
+},
+{
+"id": 1524520,
+"name": "Тильда",
+"type": 2
+},
+{
+"id": 1524522,
+"name": "Битрикс CRM",
+"type": 2
+},
+{
+"id": 1524580,
+"name": "Депозит",
+"type": 2
+},
+{
+"id": 1524768,
+"name": "Закупка упаковки",
+"type": 2
+},
+{
+"id": 1526677,
+"name": "Подписка на Adesk",
+"type": 2
+},
+{
+"id": 1526678,
+"name": "Подписка на Adesk",
+"type": 2
+},
+{
+"id": 1526858,
+"name": "ФОТ: Отдел маркетинга",
+"type": 2
+},
+{
+"id": 1529461,
+"name": "Коррекция",
+"type": 1
+},
+{
+"id": 1531458,
+"name": "Опробирование украшений",
+"type": 2
+},
+{
+"id": 1562754,
+"name": "Подписка на Wazzup",
+"type": 2
+},
+{
+"id": 1562796,
+"name": "Подписка на Tilda",
+"type": 2
+},
+{
+"id": 1578117,
+"name": "ФОТ: Отдел производства",
+"type": 2
+},
+{
+"id": 1582620,
+"name": "Реинвестиция",
+"type": 2
+},
+{
+"id": 1624656,
+"name": "Подписка на Meta",
+"type": 2
+},
+{
+"id": 1624795,
+"name": "Коррекция",
+"type": 2
+},
+{
+"id": 1679217,
+"name": "Расходы на поездки",
+"type": 2
+},
+{
+"id": 1683546,
+"name": "Аренда студии",
+"type": 2
+},
+{
+"id": 1693718,
+"name": "Услуги видеографа",
+"type": 2
+},
+{
+"id": 1693720,
+"name": "Модель",
+"type": 2
+},
+{
+"id": 1693753,
+"name": "Возмещение расходов",
+"type": 2
+},
+{
+"id": 1697628,
+"name": "Правка модели",
+"type": 2
+},
+{
+"id": 1698914,
+"name": "Закупка украшений",
+"type": 2
+},
+{
+"id": 1808644,
+"name": "Тимбилдинг",
+"type": 2
+},
+{
+"id": 1810433,
+"name": "Переделка украшения",
+"type": 2
+},
+{
+"id": 1812557,
+"name": "Подписка Leadsender",
+"type": 2
+},
+{
+"id": 1822120,
+"name": "ТМЦ для офиса",
+"type": 2
+},
+{
+"id": 1831760,
+"name": "Объявление вакансии",
+"type": 2
+},
+{
+"id": 1841089,
+"name": "Дизайн",
+"type": 2
+},
+{
+"id": 1845108,
+"name": "Консалтинг",
+"type": 2
+},
+{
+"id": 1845326,
+"name": "Родирование",
+"type": 2
+},
+{
+"id": 1852139,
+"name": "Кабинет Тик-Ток",
+"type": 2
+},
+{
+"id": 1859499,
+"name": "Расходы по Инстаграмм",
+"type": 2
+},
+{
+"id": 1880120,
+"name": "Сертификаты",
+"type": 2
+},
+{
+"id": 1894479,
+"name": "ФОТ: бухгалтерия",
+"type": 2
+},
+{
+"id": 1898231,
+"name": "Подписка NOTION",
+"type": 2
+},
+{
+"id": 1931519,
+"name": "Благотворительность",
+"type": 2
+},
+{
+"id": 1931536,
+"name": "Подписка Claude",
+"type": 2
+},
+{
+"id": 1936411,
+"name": "Агентская комиссия",
+"type": 2
+},
+{
+"id": 1946647,
+"name": "Подписка TrustMe",
+"type": 2
+},
+{
+"id": 1957848,
+"name": "Ремонт",
+"type": 2
+},
+{
+"id": 1957849,
+"name": "Офис Астана",
+"type": 2
+},
+{
+"id": 1973048,
+"name": "Доля от продаж",
+"type": 2
+},
+{
+"id": 1999765,
+"name": "тесты",
+"type": 2
+},
+{
+"id": 1999786,
+"name": "Подписка Kelesu",
+"type": 2
+},
+{
+"id": 2071687,
+"name": "Расходы на украшение",
+"type": 2
+},
+{
+"id": 2071983,
+"name": "Возврат денег клиенту (не расход)",
+"type": 2
+},
+{
+"id": 2073256,
+"name": "Долг Наргизы (выдано в счёт будущих выплат)",
+"type": 2
+}
+]
+}
