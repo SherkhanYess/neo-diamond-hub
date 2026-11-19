@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeModel, copyModel, fundRow } from './model.js'
+import { computeModel, copyModel, fundRow, requiredRevenue } from './model.js'
 import { prepareRules } from './classify.js'
 import raw from './fixtures/rules.json'
 import base from './fixtures/model-sep.json'
@@ -25,13 +25,25 @@ describe('финмодель (скрин 1 ТЗ)', () => {
     expect(m.margin).toBeCloseTo(79206041.98 - variable, 2)
     expect(m.blocks.find((b) => b.key === 'variable').total).toBeCloseTo(variable, 2)
   })
-  it('управление — от маржи; благотворительность внутри дивидендов', () => {
+  it('управление: дивиденды и развитие — суммы (уровень необходимости), реклама — % маржи', () => {
     expect(f('ads').sum).toBeCloseTo(m.margin * 0.15, 2)
     expect(f('development').sum).toBe(3500000)
     expect(f('development').pct).toBeCloseTo(3500000 / m.margin, 8)
-    const div = m.margin * 0.6
-    expect(f('dividends').charity).toBeCloseTo(div * 0.025, 2)
-    expect(f('dividends').sum).toBeCloseTo(div * 1.025, 2)
+    expect(f('dividends').dividends).toBe(21000000)
+    expect(f('dividends').charity).toBe(525000)
+    expect(f('dividends').sum).toBe(21525000)
+  })
+  it('от дивидендов: нужная выручка — при ней остаток 0', () => {
+    const need = requiredRevenue(base, prepareRules(raw))
+    expect(need.revenue).toBeGreaterThan(79206041.98)
+    const at = computeModel({ ...base, revenue: need.revenue }, R)
+    expect(Math.abs(at.rest)).toBeLessThan(1)
+    expect(need.sales).toBeCloseTo(need.revenue / 1000000, 6)
+    expect(m.requiredRevenue).toBeCloseTo(need.revenue, 2)
+  })
+  it('нужная выручка — нет решения, если переменные съедают всю выручку', () => {
+    const bad = { ...base, funds: { ...base.funds, purchases: { mode: 'pct', value: 100 } } }
+    expect(requiredRevenue(bad, R)).toBe(null)
   })
   it('постоянные — сумма строк, итоги только формулами (ошибки ТЗ исчезли)', () => {
     expect(f('salaries').sum).toBe(3050000)

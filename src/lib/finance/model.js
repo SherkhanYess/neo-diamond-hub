@@ -75,8 +75,11 @@ export function computeModel(model, R) {
   const managementTotal = blocks[1].total
   const fixedTotal = blocks[2].total
 
+  const need = requiredRevenue(model, R)
   return {
     month: model.month,
+    requiredRevenue: need?.revenue ?? null,
+    requiredSales: need?.sales ?? null,
     revenue,
     avgCheck,
     sales,
@@ -86,6 +89,49 @@ export function computeModel(model, R) {
     rest: margin - managementTotal - fixedTotal,
     restPct: div(margin - managementTotal - fixedTotal, revenue),
   }
+}
+
+/**
+ * От дивидендов: какая выручка нужна, чтобы при этих вводных покрыть все фонды
+ * (дивиденды и развитие — суммами, уровень необходимости владельца) и выйти в остаток 0.
+ * Переменные пропорциональны выручке (% и ₸ на продажу при неизменном чеке), фонды
+ * управления в % — пропорциональны марже, суммы — постоянны. null — решения нет.
+ */
+export function requiredRevenue(model, R) {
+  const inputs = model.funds ?? {}
+  const amounts = model.items ?? {}
+  const check = n(model.avg_check)
+  const charity = 1 + n(model.charity_pct) / 100
+  let varRatio = 0
+  let varConst = 0
+  let mgmtPct = 0
+  let mgmtConst = 0
+  let fixedConst = 0
+  for (const f of R.funds) {
+    const input = inputs[f.key]
+    const items = R.items.filter((i) => i.fund_id === f.id)
+    const byItems = f.block === 'fixed' && (items.some((i) => amounts[i.key] != null) || !input)
+    const mult = f.key === 'dividends' ? charity : 1
+    if (byItems) {
+      fixedConst += items.reduce((a, i) => a + n(amounts[i.key]), 0)
+      continue
+    }
+    if (!input) continue
+    const v = n(input.value)
+    if (f.block === 'variable') {
+      if (input.mode === 'pct') varRatio += v / 100
+      else if (input.mode === 'per_sale') varRatio += check ? v / check : 0
+      else varConst += v
+    } else if (f.block === 'management') {
+      if (input.mode === 'pct') mgmtPct += (v / 100) * mult
+      else mgmtConst += v * mult
+    } else if (input.mode === 'pct') varRatio += v / 100
+    else fixedConst += v
+  }
+  if (varRatio >= 1 || mgmtPct >= 1) return null
+  const margin = (mgmtConst + fixedConst) / (1 - mgmtPct)
+  const revenue = (margin + varConst) / (1 - varRatio)
+  return { revenue, margin, sales: check ? revenue / check : 0 }
 }
 
 /** Строка фонда по ключу. */

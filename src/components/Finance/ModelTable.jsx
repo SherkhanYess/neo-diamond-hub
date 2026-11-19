@@ -103,6 +103,25 @@ export default function ModelTable({ model, m, onSave, prevFact, prevLabel, plan
           <b className={m.rest < 0 ? 'fm__neg' : ''}>{money(m.rest)}</b>
           <small>маржа − управление − постоянные</small>
         </div>
+        {m.requiredRevenue != null && (
+          <div className="fin__card fm__need">
+            <span>Чтобы выплатить дивиденды {money(fundOf(m, 'dividends')?.dividends ?? 0)}</span>
+            <b>{money(m.requiredRevenue)}</b>
+            <small>
+              нужна выручка · продаж {nf(m.requiredSales, 1)}
+              {Math.abs(m.requiredRevenue - m.revenue) >= 1 && (
+                <>
+                  {' · '}
+                  {m.requiredRevenue > m.revenue ? 'не хватает ' : 'запас '}
+                  {money(Math.abs(m.requiredRevenue - m.revenue))}
+                  <button className="fm__apply" onClick={() => onSave({ revenue: Math.ceil(m.requiredRevenue) })}>
+                    сделать планом
+                  </button>
+                </>
+              )}
+            </small>
+          </div>
+        )}
         {sales && (
           <div className="fin__card">
             <span>Факт продаж месяца (Adesk)</span>
@@ -238,6 +257,8 @@ function FundRows({ r, open, toggle, fundInput, setItem, prevFact, model, onSave
     </>
   )
 }
+
+const fundOf = (m, key) => m.blocks.flatMap((b) => b.rows).find((r) => r.key === key)
 
 /** Перевод значения фонда при смене режима, чтобы сумма не прыгала. */
 function convert(r, from, to, m) {
