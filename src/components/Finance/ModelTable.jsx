@@ -41,7 +41,7 @@ const MODES = (fund) => [
 ]
 
 /**
- * Финмодель месяца. Вводные — поля (выделены), остальное считается.
+ * Уровень необходимости месяца. Вводные — поля (выделены); выручка — результат.
  * prevFact: Map ключ фонда/строки → факт прошлого месяца на одну продажу (фонды per_sale).
  */
 export default function ModelTable({ model, m, onSave, prevFact, prevLabel, planning, sales }) {
@@ -76,59 +76,45 @@ export default function ModelTable({ model, m, onSave, prevFact, prevLabel, plan
     )
   }
 
-  const diff = planning != null ? m.revenue - planning : null
-
   return (
     <>
+      {m.unsolvable && (
+        <div className="v2__banner">
+          При таких процентах переменные фонды съедают всю выручку — уровень необходимости не считается. Проверьте % и нормы на продажу.
+        </div>
+      )}
       <div className="fin__cards">
-        <div className="fin__card fm__rev">
-          <span>Выручка, план месяца</span>
-          <Num value={model.revenue} width={170} onSave={(v) => onSave({ revenue: v })} suffix="₸" />
+        <div className="fin__card fm__need">
+          <span>Нужная выручка — уровень необходимости</span>
+          <b>{money(m.revenue)}</b>
           <small>
-            {planning != null ? `В «Планировании»: ${money(planning)} · расхождение ${diff > 0 ? '+' : ''}${money(diff)}` : 'В «Планировании» утверждённого плана выручки на месяц нет'}
+            {planning != null ? `В «Планировании»: ${money(planning)} · ${planning >= m.revenue ? 'запас' : 'не хватает'} ${money(Math.abs(planning - m.revenue))}` : 'чтобы покрыть дивиденды, развитие и все фонды'}
           </small>
         </div>
         <div className="fin__card fm__rev">
           <span>Средний чек</span>
           <Num value={model.avg_check} width={140} onSave={(v) => onSave({ avg_check: v })} suffix="₸" />
-          <small>Продаж по плану: {nf(m.sales, 1)}</small>
+          <small>Нужно продаж: {nf(m.sales, 1)}</small>
+        </div>
+        <div className="fin__card">
+          <span>Дивиденды на руки</span>
+          <b>{money(fundOf(m, 'dividends')?.payout ?? 0)}</b>
+          <small>фонд {money(fundOf(m, 'dividends')?.dividends ?? 0)}, из него благотворительность {money(fundOf(m, 'dividends')?.charity ?? 0)}</small>
         </div>
         <div className="fin__card">
           <span>Маржа</span>
           <b>{money(m.margin)}</b>
           <small>{pc(m.marginPct)} выручки</small>
         </div>
-        <div className="fin__card">
-          <span>Остаток</span>
-          <b className={m.rest < 0 ? 'fm__neg' : ''}>{money(m.rest)}</b>
-          <small>маржа − управление − постоянные</small>
-        </div>
-        {m.requiredRevenue != null && (
-          <div className="fin__card fm__need">
-            <span>Чтобы выплатить дивиденды {money(fundOf(m, 'dividends')?.dividends ?? 0)}</span>
-            <b>{money(m.requiredRevenue)}</b>
-            <small>
-              нужна выручка · продаж {nf(m.requiredSales, 1)}
-              {Math.abs(m.requiredRevenue - m.revenue) >= 1 && (
-                <>
-                  {' · '}
-                  {m.requiredRevenue > m.revenue ? 'не хватает ' : 'запас '}
-                  {money(Math.abs(m.requiredRevenue - m.revenue))}
-                  <button className="fm__apply" onClick={() => onSave({ revenue: Math.ceil(m.requiredRevenue) })}>
-                    сделать планом
-                  </button>
-                </>
-              )}
-            </small>
-          </div>
-        )}
         {sales && (
           <div className="fin__card">
             <span>Факт продаж месяца (Adesk)</span>
-            <b>{nf(sales.count)}</b>
+            <b>
+              {nf(sales.count)} <em className="fm__of">из {nf(m.sales, 1)}</em>
+            </b>
             <small>
               заказов {sales.orders.length} · из наличия {sales.stock.filter((s) => !s.cancelled).length}
-              {sales.confirmed ? ` (в amoCRM найдено ${sales.confirmed})` : ''} · чек {money(sales.avgCheck)}
+              {sales.confirmed ? ` (в amoCRM найдено ${sales.confirmed})` : ''} · выручка {money(sales.revenue)} · чек {money(sales.avgCheck)}
             </small>
           </div>
         )}
@@ -158,20 +144,12 @@ export default function ModelTable({ model, m, onSave, prevFact, prevLabel, plan
             {m.blocks.map((b) => (
               <BlockRows key={b.key} b={b} m={m} open={open} toggle={toggle} fundInput={fundInput} setItem={setItem} prevFact={prevFact} model={model} onSave={onSave} />
             ))}
-            <tr className="dds__row dds__row--l0 fm__hl">
-              <td className="dds__name">ОСТАТОК</td>
-              <td />
-              <td className={`dds__num ${m.rest < 0 ? 'fm__neg' : ''}`}>{nf(m.rest)}</td>
-              <td>{pc(m.restPct)}</td>
-              <td />
-              <td />
-            </tr>
           </tbody>
         </table>
       </div>
       <p className="fin__legend">
-        Поля — вводные месяца, остальное считается. Фонд можно задать в % (от выручки или маржи), в ₸ в месяц или в ₸ на продажу (сдельная ЗП,
-        закупки, транспорт). Новый месяц создаётся копией прошлого — старые не меняются.
+        Уровень необходимости: поля — сколько нужно (дивиденды и развитие — суммой, постоянные расходы, оклады, % фондов, нормы на продажу, чек);
+        выручка и продажи — результат: сколько должна сделать компания, чтобы всё это покрыть. Новый месяц — копия прошлого, старые не меняются.
       </p>
     </>
   )

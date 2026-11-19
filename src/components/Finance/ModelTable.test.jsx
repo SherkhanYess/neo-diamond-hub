@@ -10,16 +10,17 @@ const R = prepareRules(raw)
 const sp = (s) => s.replace(/\s/g, ' ')
 
 describe('ModelTable', () => {
-  it('рисует модель, правит выручку и строку оклада', () => {
+  it('рисует уровень необходимости, правит чек; выручка не вводится', () => {
     const onSave = vi.fn()
     render(<ModelTable model={base} m={computeModel(base, R)} onSave={onSave} prevFact={new Map([['purchases', 500000]])} prevLabel="августа" planning={10000000} sales={null} />)
     expect(screen.getByText('Фонд закупок')).toBeTruthy()
     expect(screen.getByText('Айсултан — маркетолог')).toBeTruthy()
     expect(sp(document.body.textContent)).toContain('500 000')
-    const rev = screen.getAllByRole('textbox')[0]
-    fireEvent.focus(rev)
-    fireEvent.change(rev, { target: { value: '90000000' } })
-    fireEvent.blur(rev)
-    expect(onSave).toHaveBeenCalledWith({ revenue: 90000000 })
+    expect(sp(document.body.textContent)).toContain('80 832 561')
+    const check = screen.getAllByRole('textbox')[0]
+    fireEvent.focus(check)
+    fireEvent.change(check, { target: { value: '1200000' } })
+    fireEvent.blur(check)
+    expect(onSave).toHaveBeenCalledWith({ avg_check: 1200000 })
   })
 })

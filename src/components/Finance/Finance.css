@@ -76,3 +76,5 @@
 
 .fm__need { background: var(--champagne-200); }
 .fm__apply { margin-left: 6px; background: var(--ink-800); color: var(--paper-000); border: 0; border-radius: var(--radius-pill); padding: 2px 10px; font: inherit; font-size: 0.72rem; cursor: pointer; }
+.fm__of { font-style: normal; font-family: var(--font-body); font-size: 0.8rem; color: var(--ink-400); }
+.fm__need b { font-size: 1.35rem; }

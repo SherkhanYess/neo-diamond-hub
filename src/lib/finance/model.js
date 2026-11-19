@@ -1,4 +1,7 @@
-// Финмодель месяца: вводные → суммы фондов, % и «на одну продажу».
+// Уровень необходимости (финмодель) месяца — решение владельца 19.11.2026:
+// выручка НЕ вводится, это результат. Вводим, сколько нужно (дивиденды и развитие — суммой,
+// постоянные расходы, оклады, % фондов, нормы на продажу, средний чек) — модель считает,
+// какую выручку должна сделать компания, чтобы всё это покрыть (остаток 0).
 //
 // Вход фонда — одно из (fin_models.funds[key]):
 //   pct      — % от выручки (прямые переменные) или от маржи (расходы управления);
@@ -21,7 +24,8 @@ const div = (a, b) => (b ? a / b : 0)
  * @param R     prepareRules(...) — фонды и строки
  */
 export function computeModel(model, R) {
-  const revenue = n(model.revenue)
+  const need = requiredRevenue(model, R)
+  const revenue = need ? need.revenue : 0
   const avgCheck = n(model.avg_check)
   const sales = div(revenue, avgCheck)
   const inputs = model.funds ?? {}
@@ -76,11 +80,9 @@ export function computeModel(model, R) {
   const managementTotal = blocks[1].total
   const fixedTotal = blocks[2].total
 
-  const need = requiredRevenue(model, R)
   return {
     month: model.month,
-    requiredRevenue: need?.revenue ?? null,
-    requiredSales: need?.sales ?? null,
+    unsolvable: !need,
     revenue,
     avgCheck,
     sales,

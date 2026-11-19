@@ -19,7 +19,7 @@ function prevMonth(m) {
 const thisMonth = () => new Date().toISOString().slice(0, 7)
 const FIRST = '2026-08'
 const TABS = [
-  { key: 'model', label: 'Финмодель' },
+  { key: 'model', label: 'Уровень необходимости' },
   { key: 'dds', label: 'ДДС по фондам' },
 ]
 const readTab = () => {
@@ -42,7 +42,7 @@ function factPerSale(dds, count) {
   return out
 }
 
-// Вкладка «Финансы»: финмодель (план) и ДДС по фондам (факт). Учёт общий на компанию —
+// Вкладка «Финансы»: уровень необходимости (план, бывш. «финмодель») и ДДС по фондам (факт). Учёт общий на компанию —
 // переключатель бренда здесь не действует. План-факт — следующим этапом.
 export default function FinancePage() {
   const { profile } = useSession()
@@ -95,9 +95,12 @@ export default function FinancePage() {
   }, [refs, data, model, month])
 
   const save = async (patch) => {
-    setModel((cur) => ({ ...cur, ...patch }))
+    // Выручка — результат уровня необходимости; храним её рядом с вводными для истории и план-факта.
+    const next = { ...model, ...patch }
+    const full = refs ? { ...patch, revenue: Math.round(computeModel(next, refs.R).revenue * 100) / 100 } : patch
+    setModel(next)
     try {
-      const saved = await saveModel(month, patch, profile?.id ?? null)
+      const saved = await saveModel(month, full, profile?.id ?? null)
       setModel(saved)
     } catch (e) {
       setError(e.message)
