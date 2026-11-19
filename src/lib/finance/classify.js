@@ -53,8 +53,8 @@ function findPerson(R, t) {
 /**
  * @param t   строка adesk_transactions (+ project_type, project_name)
  * @param R   prepareRules(...)
- * @param ctx { okladUsed: Map } — сколько оклада уже выплачено человеку за месяц начисления;
- *            операции нужно подавать по порядку дат.
+ * @param ctx { okladUsed: Map, oklad?: (person) → ₸ } — сколько оклада уже выплачено человеку
+ *            за месяц начисления и оклад из финмодели; операции подавать по порядку дат.
  */
 export function classify(t, R, ctx = { okladUsed: new Map() }) {
   const amount = Number(t.amount_kzt)
@@ -79,7 +79,9 @@ export function classify(t, R, ctx = { okladUsed: new Map() }) {
   if (person) {
     const key = `${person.id}|${month(t.related_date || t.date)}`
     const used = ctx.okladUsed.get(key) ?? 0
-    const okladPart = person.overflow_item_id ? Math.min(Math.max(Number(person.oklad) - used, 0), amount) : amount
+    // Оклад месяца — из финмодели (ctx.oklad), иначе из карточки человека.
+    const oklad = Number(ctx.oklad ? ctx.oklad(person) : person.oklad) || 0
+    const okladPart = person.overflow_item_id ? Math.min(Math.max(oklad - used, 0), amount) : amount
     ctx.okladUsed.set(key, used + okladPart)
     const split = []
     if (okladPart > 0) split.push({ itemId: person.item_id, fundId: fundOf(R, person.item_id), amount: okladPart })

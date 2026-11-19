@@ -65,3 +65,12 @@ describe('поступление без сделки и возврат на ту
     expect(d.totals.closing).toBe(1050000)
   })
 })
+
+describe('оклад из финмодели месяца', () => {
+  it('Айсултан с окладом 500 000: 720 000 = 500 000 + 220 000 KPI', () => {
+    const d2 = buildDds({ month: '2026-09', txs: sep, R, opening: 0, okladByItem: new Map([['salaries.aisultan', 500000]]) })
+    const it2 = (k) => d2.rows.flatMap((r) => r.items ?? []).find((i) => i.key === k)
+    expect(it2('salaries.aisultan').total).toBe(500000 + 100000) // август до оклада + аванс сентября
+    expect(it2('piece.kpi_marketing').total).toBe(220000 + 54600) // + сверх оклада Аружан (254 600 − 200 000)
+  })
+})

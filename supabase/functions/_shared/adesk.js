@@ -43,6 +43,12 @@ export function txRow(t) {
   }
 }
 
+/** 'dd.mm.yyyy[ hh:mm]' → 'yyyy-mm-dd'. */
+export function ruDate(v) {
+  const m = String(v ?? '').match(/^(\d{2})\.(\d{2})\.(\d{4})/)
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : null
+}
+
 /** Сделка/проект Adesk → строка adesk_projects. */
 export function projectRow(p) {
   return {
@@ -52,6 +58,7 @@ export function projectRow(p) {
     category: p.category?.name ?? null,
     act_date: p.actDate ?? null,
     deal_amount: num(p.dealAmount),
+    created: ruDate(p.created),
     archived: !!p.isArchived,
   }
 }

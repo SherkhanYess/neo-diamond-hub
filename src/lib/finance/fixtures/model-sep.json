@@ -1,0 +1,17 @@
+{
+  "month": "2026-09-01", "revenue": 79206041.98, "avg_check": 1000000, "charity_pct": 2.5,
+  "funds": {
+    "taxes": {"mode": "pct", "value": 1.6}, "pct_sales": {"mode": "pct", "value": 4.35},
+    "piece": {"mode": "per_sale", "value": 27900}, "purchases": {"mode": "per_sale", "value": 469300},
+    "transport": {"mode": "per_sale", "value": 4150}, "dividends": {"mode": "pct", "value": 60},
+    "development": {"mode": "amount", "value": 3500000}, "reserve": {"mode": "pct", "value": 1}, "ads": {"mode": "pct", "value": 15}
+  },
+  "items": {
+    "rent.almaty": 1500000, "rent.astana": 400000, "utilities.office": 100000,
+    "salaries.danelya": 300000, "salaries.almas": 300000, "salaries.ablay": 300000, "salaries.gaukhar": 300000,
+    "salaries.aruzhan": 200000, "salaries.mukhamed": 500000, "salaries.nargiza": 400000,
+    "salaries.accountant": 100000, "salaries.aisultan": 450000, "salaries.designer": 200000,
+    "other.internet": 13600, "other.amocrm": 22500, "other.adesk": 40000, "other.kelesu": 60000,
+    "other.bitrix": 44000, "other.meta": 27900, "other.claude": 10000, "other.wazzup": 12000, "other.trustme": 38000
+  }
+}

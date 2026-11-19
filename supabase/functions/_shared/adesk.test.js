@@ -33,7 +33,9 @@ describe('adesk', () => {
     expect(accountKind('Личные деньги Шерхана')).toBe('other')
   })
   it('сделка: дата акта и сумма', () => {
-    expect(projectRow({ id: 5, type: 'deal', name: '6579 сентябрь', actDate: '2026-09-30', dealAmount: '900000.00', category: { name: 'Конструктор (под заказ)' } }))
-      .toMatchObject({ id: 5, type: 'deal', act_date: '2026-09-30', deal_amount: 900000, category: 'Конструктор (под заказ)' })
+    expect(projectRow({ id: 5, type: 'deal', name: '6579 сентябрь', actDate: '2026-09-30', dealAmount: '900000.00', created: '01.10.2026', category: { name: 'Конструктор (под заказ)' } }))
+      .toMatchObject({ id: 5, type: 'deal', act_date: '2026-09-30', deal_amount: 900000, created: '2026-10-01', category: 'Конструктор (под заказ)' })
+    expect(projectRow({ id: 6, name: 'x', created: '12.11.2026 10:15' }).created).toBe('2026-11-12')
+    expect(projectRow({ id: 7, name: 'x' }).created).toBe(null)
   })
 })

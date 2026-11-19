@@ -5,7 +5,7 @@
 //   эквайринг и возвраты) → платежи по фондам и строкам, «Не распределено» → чистый поток →
 //   курсовые разницы при переводах → исключённое (статуэтка) → остаток на конец дня.
 // Исключённые операции не входят в потоки, но двигают деньги — поэтому остаток сходится с Adesk.
-import { classify, partsOf } from './classify.js'
+import { classify, partsOf, itemKeyOf } from './classify.js'
 
 const WD = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 
@@ -28,8 +28,9 @@ const mkRow = (key, label, level, extra = {}) => ({ key, label, level, total: 0,
  * @param txs     операции месяца (adesk_transactions + project_type, project_name)
  * @param R       prepareRules(...)
  * @param opening остаток всех счетов на начало месяца, ₸
+ * @param okladByItem Map ключ строки оклада → оклад месяца из финмодели (необязательно)
  */
-export function buildDds({ month, txs, R, opening = 0 }) {
+export function buildDds({ month, txs, R, opening = 0, okladByItem = null }) {
   const days = daysOf(month)
   const list = txs
     .filter((t) => String(t.date).slice(0, 7) === month)
@@ -76,7 +77,8 @@ export function buildDds({ month, txs, R, opening = 0 }) {
     }
   }
 
-  const ctx = { okladUsed: new Map() }
+  const oklad = okladByItem ? (p) => okladByItem.get(itemKeyOf(R, p.item_id)) ?? p.oklad : null
+  const ctx = { okladUsed: new Map(), oklad }
   const unassigned = []
   const ops = []
   for (const t of list) {
