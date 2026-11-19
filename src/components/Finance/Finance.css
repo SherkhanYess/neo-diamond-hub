@@ -60,3 +60,16 @@
   .dds__name { min-width: 170px; }
   .fin__sheet { padding: var(--space-3); }
 }
+
+/* Финмодель */
+.fm td { text-align: right; }
+.fm__hl td { background: var(--champagne-200) !important; }
+.fm__neg { color: #B4462F !important; }
+.fm__in { display: inline-flex; align-items: center; gap: 4px; }
+.fm__in input { width: 100%; font: inherit; font-size: 0.8rem; text-align: right; padding: 4px 8px; border: 1px solid var(--champagne-400); background: #FFFBF3; border-radius: 8px; color: var(--ink-900); font-variant-numeric: tabular-nums; }
+.fm__in input:focus { outline: 2px solid var(--champagne-500); }
+.fm__in em { font-style: normal; color: var(--ink-400); }
+.fm__mode { display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.fm__mode select { font: inherit; font-size: 0.75rem; border: 1px solid var(--paper-300); border-radius: 8px; padding: 3px 4px; background: var(--paper-000); color: var(--ink-600); }
+.fm__muted { color: var(--ink-400); font-size: 0.75rem; }
+.fm__rev .fm__in input { font-family: var(--font-display); font-size: 1rem; padding: 6px 10px; }

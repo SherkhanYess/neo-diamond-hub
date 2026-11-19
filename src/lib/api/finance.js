@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient'
 import { fetchAll } from './paging'
 import { prepareRules } from '../finance/classify'
 import { openingFor, monthStart, nextMonth } from '../finance/opening'
+import { copyModel } from '../finance/model'
 
 const must = ({ data, error }) => {
   if (error) throw error
@@ -103,4 +104,64 @@ export async function saveAccountKind(id, kind) {
 export async function saveItem(item) {
   if (item.id) return must(await supabase.from('fin_items').update(item).eq('id', item.id).select().single())
   return must(await supabase.from('fin_items').insert(item).select().single())
+}
+
+// ------------------------------------------------------------------ Финмодель
+
+const monthDate = (month) => `${month}-01`
+
+/** Модель месяца. Нет — создаётся копией последней модели до него (старые не меняются). */
+export async function loadModel(month) {
+  const have = must(await supabase.from('fin_models').select('*').eq('month', monthDate(month)).maybeSingle())
+  if (have) return have
+  let prev = must(await supabase.from('fin_models').select('*').lt('month', monthDate(month)).order('month', { ascending: false }).limit(1).maybeSingle())
+  if (!prev) prev = must(await supabase.from('fin_models').select('*').order('month').limit(1).maybeSingle())
+  if (!prev) return null
+  const fresh = copyModel(prev, monthDate(month))
+  return must(await supabase.from('fin_models').upsert(fresh, { onConflict: 'month' }).select().single())
+}
+
+export async function saveModel(month, patch, actorId = null) {
+  return must(
+    await supabase
+      .from('fin_models')
+      .update({ ...patch, updated_at: new Date().toISOString(), updated_by: actorId })
+      .eq('month', monthDate(month))
+      .select()
+      .single()
+  )
+}
+
+/** План выручки из «Планирования»: утверждённые коммерческие планы месяца (последняя версия). */
+export async function loadPlanningRevenue(month) {
+  const { data, error } = await supabase
+    .from('plans')
+    .select('brand_id, branch_id, version, computed')
+    .eq('kind', 'commerce')
+    .eq('status', 'approved')
+    .eq('month', monthDate(month))
+  if (error || !data?.length) return null
+  const latest = new Map()
+  for (const p of data) {
+    const k = `${p.brand_id}|${p.branch_id}`
+    if (!latest.has(k) || latest.get(k).version < p.version) latest.set(k, p)
+  }
+  return [...latest.values()].reduce((a, p) => a + (Number(p.computed?.grandTotal?.revenue) || 0), 0)
+}
+
+/** Сделки Adesk и закрытые сделки amoCRM около месяца — для подсчёта продаж. */
+export async function loadSalesRefs(month) {
+  const projects = await fetchAll(() => supabase.from('adesk_projects').select('id, type, name, act_date, deal_amount, created'))
+  const from = new Date(`${month}-01T00:00:00Z`)
+  const lo = new Date(from.getTime() - 15 * 86400000).toISOString().slice(0, 10)
+  const hi = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + 1, 15)).toISOString().slice(0, 10)
+  let amo = []
+  try {
+    amo = await fetchAll(() =>
+      supabase.from('deals').select('sale_at, revenue').gte('sale_at', lo).lte('sale_at', hi).not('revenue', 'is', null).eq('is_ignored', false)
+    )
+  } catch {
+    amo = [] // без права на отчёты сверка с amoCRM просто не показывается
+  }
+  return { projects, amo: amo.map((d) => ({ sale_at: String(d.sale_at).slice(0, 10), revenue: Number(d.revenue) })) }
 }
